@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alerts card — states &amp; edge cases (DCA) · Spacce CX</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #F1F1F6; }
+  .spec-top .sp-qa-btn { text-decoration: none; }
+  .spec-top .nav { display: flex; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+  <div class="spec-top">
+    <div><h2>Alerts card — states &amp; edge cases (DCA)</h2><span class="sub">Visual reference for PRD_ops_dashboard_dca.md §7.2.4/7.2.5 (rule catalog &amp; behaviours) &amp; §7.2.6-equivalent edge cases</span></div>
+    <div class="nav">
+      <details class="devnav">
+        <summary class="sp-qa-btn">Dev references ▾</summary>
+        <div class="devnav-menu">
+          <a href="journey-states.html">Journey states</a>
+          <a href="alerts-states.html" class="active">Alerts card states</a>
+          <a href="checks-states.html">Checks states</a>
+          <a href="event-delivery-states.html">Event delivery states</a>
+        </div>
+      </details>
+      <a href="index.html" class="sp-qa-btn">← Back to dashboard</a>
+    </div>
+  </div>
+  <div class="spec-wrap" id="alertsSpecBody"></div>
+
+<script>
+// Alerts-states spec gallery (DCA) — static HTML strings, mirrors the DSA+CC tool's
+// alerts-states.html pattern exactly. Rule catalog per PRD_ops_dashboard_dca.md §7.2.4.
+function _ai(level, title, body) {
+  return `<div class="alert alert-${level}"><span class="alert-label">${level.toUpperCase()}</span><strong>${title}</strong><br>${body}</div>`;
+}
+function _acell(caption, headerTag, bodyHtml, scroll) {
+  return `<div class="spec-cell${scroll ? " spec-scroll" : ""}">
+    <div class="spec-caption">${caption}</div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Alerts</span>${headerTag}</div>
+      <div class="card-body" style="padding:14px 18px;">${bodyHtml}</div>
+    </div>
+  </div>`;
+}
+function buildAlertsSpec() {
+  const clear = `<span class="tag tag-active">CLEAR</span>`;
+  const incomplete = `<span class="tag tag-pending">checks incomplete</span>`;
+  const count = n => `<span class="tag tag-stuck">${n} active</span>`;
+  const countInfo = n => `<span class="tag tag-review">${n} active</span>`;
+
+  const behaviours = [
+    _acell(`<span class="tagref">A-1</span><b>Sorted P0 → P1 → info</b> with severity chips; earliest blocker on top.`,
+      count(3),
+      _ai("p0", "Account not created", "KYC approved, no CURRENT_ACCOUNT_CREATED property row.") +
+      _ai("p0", "VKYC rejected", "Rejection reason: FACE_MISMATCH (vkyc_details, product_flow=15).") +
+      _ai("p1", "GST not verified", "Non-gating today — informational only.")),
+
+    _acell(`<span class="tagref">A-3</span><b>Show all</b> — no cap; the list scrolls.`,
+      count(5),
+      _ai("p0", "Fraud hard block / blacklisted", "USER_BLACKLISTED.") +
+      _ai("p0", "Account not created", "CURRENT_ACCOUNT_CREATED property missing.") +
+      _ai("p1", "Dedupe conflict — existing account", "PAN_DEDUPE_EXISTS_WITH_DIFFERENT_UUID.") +
+      _ai("p1", "GST not verified", "Non-gating today.") +
+      _ai("info", "Possible step-level redo — unconfirmed reset pattern", "See PRD §9 / Q-DCA-4."), true),
+
+    _acell(`<span class="tagref">A-2</span><b>Plain language</b> — an L1 agent understands without the SOP; policy asymmetry stated explicitly.`,
+      count(1),
+      _ai("p0", "Udyam not verified — mandatory block", "Business Details cannot pass without Udyam verification today. (GST alone would not block — see the separate GST alert if also present.)")),
+
+    _acell(`<span class="tagref">A-7 / A-10</span><b>CLEAR</b> — zero alerts &amp; both critical sources (redflags, account-creation property) resolved.`,
+      clear,
+      `<div class="alert alert-info"><strong>No active alerts</strong> — journey looks healthy.</div>`),
+
+    _acell(`<span class="tagref">A-7 / A-10</span><b>Checks incomplete</b> — a critical source failed → never shown as CLEAR.`,
+      incomplete,
+      `<div class="alert alert-p1"><span class="alert-label">CHECKS INCOMPLETE</span><strong>Some checks could not be fetched</strong><br>A critical source (redflags or account-creation property) is unavailable — not a clean "healthy" result.</div>`),
+
+    _acell(`<span class="tagref">A-8</span><b>Absent / unknown → no false alert</b>; a rule with missing inputs doesn't fire.`,
+      clear,
+      `<div class="alert alert-info"><strong>No active alerts</strong> — nothing fired; missing fields never manufacture an alert.</div>`),
+  ];
+
+  const edges = [
+    _acell(`<span class="tagref">audit-declined</span><b>Fraud/redflag + Decision both reflect the same audit outcome</b> — different facets, both shown.`,
+      count(2),
+      _ai("p0", "Declined post-audit", "CONCURRENT_AUDIT_REVIEW_DECLINED. Owner: Review/Audit team.") +
+      _ai("info", "Decision milestone shows REJECTED", "Terminal — same underlying cause, different card.")),
+
+    _acell(`<span class="tagref">other</span><b>Rejected, no matching redflag</b> — the "investigate" case (mirrors the source PRD's Milestone-9 pattern).`,
+      count(1),
+      _ai("p1", "Rejected — no red flag found", "No matching row in slice_x_redflags for this uuid. Flag for investigation.")),
+
+    _acell(`<span class="tagref">A-9</span><b>EDI-flagged application</b> → no Alerts card at all; the out-of-scope empty state renders instead.`,
+      countInfo(0),
+      `<div class="sp-noscope" style="margin:0;border:none;padding:26px 20px;">
+        <div class="sp-noscope-icon">◌</div><h3 style="font-size:14px;">This application is EDI, not DCA</h3>
+        <p class="sp-muted" style="font-size:12px;">ONBOARDING_PLATFORM_SYNC present — routes to the EDI on-call tool, not this one.</p>
+      </div>`),
+
+    _acell(`<span class="tagref">reset (assumed)</span><b>Info-only, explicitly gated</b> — DCA reset behaviour is unconfirmed; never framed as a confirmed reset.`,
+      countInfo(1),
+      _ai("info", "Possible step-level redo — unconfirmed reset pattern", "Two distinct PAN Screen submissions appear for this uuid. Whether this reflects a supported DCA reset mechanism is unconfirmed (Q-DCA-4). Do not brief as a confirmed reset flow.")),
+  ];
+
+  document.getElementById("alertsSpecBody").innerHTML =
+    `<div class="spec-section-title">Behaviours — A-1 … A-10</div>` +
+    `<div class="spec-grid">${behaviours.join("")}</div>` +
+    `<div class="spec-section-title">Edge cases</div>` +
+    `<div class="spec-grid">${edges.join("")}</div>`;
+}
+buildAlertsSpec();
+</script>
+</body>
+</html>

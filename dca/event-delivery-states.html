@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event delivery card — states (DCA) · Spacce CX</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #F1F1F6; }
+  .spec-top .sp-qa-btn { text-decoration: none; }
+  .spec-top .nav { display: flex; gap: 10px; align-items: center; }
+  .spec-cell .card { margin: 0; box-shadow: 0 2px 10px rgba(30,30,60,.07); }
+  .spec-section-title .ms-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="spec-top">
+    <div><h2>Event delivery card — states (DCA)</h2><span class="sub">Visual reference for PRD_ops_dashboard_dca.md §7.4 · Received / Not received / Pending · rendered by render.js</span></div>
+    <div class="nav">
+      <details class="devnav">
+        <summary class="sp-qa-btn">Dev references ▾</summary>
+        <div class="devnav-menu">
+          <a href="journey-states.html">Journey states</a>
+          <a href="alerts-states.html">Alerts card states</a>
+          <a href="checks-states.html">Checks states</a>
+          <a href="event-delivery-states.html" class="active">Event delivery states</a>
+        </div>
+      </details>
+      <a href="index.html" class="sp-qa-btn">← Back to dashboard</a>
+    </div>
+  </div>
+  <div class="spec-wrap" id="body"></div>
+
+<script src="render.js"></script>
+<script>
+// Event-delivery gallery — every delivery state from PRD §7.4, rendered by the real
+// renderEventRow(). UNLIKE the DSA+CC tool's equivalent page, every cell here carries the
+// snapshot-vs-event-log caveat (PRD §0.1 / E-5) — "Received" means "flag/property present
+// in this fetch," not "we observed a discrete timestamped delivery event."
+function _ecell(caption, rowsHtml) {
+  return `<div class="spec-cell">
+    <div class="spec-caption">${caption}</div>
+    <div class="card"><div class="card-header"><span class="card-title">Event delivery</span></div>
+      <div class="card-caveat">As of last fetch — not an event trace (PRD §0.1/E-5).</div>
+      <div class="card-body" style="padding:4px 18px;">${rowsHtml}</div></div>
+  </div>`;
+}
+const _t = (chip, txt) => `<span class="tagref">${chip}</span>${txt}`;
+
+function build() {
+  const rep = _ecell(_t("full card", "<b>Representative card</b> — the account-not-created signal: business details submitted and VKYC decided, but the account-creation property missing."),
+    renderEventRow({ event:"flags: BUSINESS_DETAILS_SUBMITTED", status:"ok",  time:"2026-07-28 09:40" }) +
+    renderEventRow({ event:"vkyc_details row (product_flow=15)", status:"ok", time:"2026-07-30 12:00 — APPROVED" }) +
+    renderEventRow({ event:"flags: MOVED_TO_AUDIT", status:"pending", time:"not applicable — direct approval" }) +
+    renderEventRow({ event:"user_states: CURRENT_ACCOUNT_CREATED", status:"err", time:"not received" }));
+
+  const states = [
+    _ecell(_t("Received", "<b>Received</b> — flag/property present in the current snapshot (positive)."),
+      renderEventRow({ event:"flags: BUSINESS_DETAILS_SUBMITTED", status:"ok", time:"2026-07-28 09:40" })),
+    _ecell(_t("Not received", "<b>Not received</b> — the silent-failure signal (negative). The account-creation row is the load-bearing example."),
+      renderEventRow({ event:"user_states: CURRENT_ACCOUNT_CREATED", status:"err", time:"not received" })),
+    _ecell(_t("Pending", "<b>Pending</b> — expected but not yet due, or not applicable to this path (neutral)."),
+      renderEventRow({ event:"flags: MOVED_TO_AUDIT", status:"pending", time:"not applicable — direct approval path" })),
+    _ecell(_t("empty (E-3)", "<b>Nothing trackable</b> — very early-stage application; say so explicitly, never a blank card."),
+      `<div style="padding:12px 0;font-size:13px;color:var(--muted);">No events tracked for this application.</div>`),
+  ];
+
+  const covered = [
+    _ecell(_t("Business Details", "<b>Business Details submitted</b> — flags contains BUSINESS_DETAILS_SUBMITTED."),
+      renderEventRow({ event:"flags: BUSINESS_DETAILS_SUBMITTED", status:"ok", time:"2026-07-28 09:40" })),
+    _ecell(_t("VKYC (E-1 analogue)", "<b>VKYC decision</b> — the one row on this card backed by a genuinely timestamped table."),
+      renderEventRow({ event:"vkyc_details row (product_flow=15)", status:"ok", time:"2026-07-30 12:00 — APPROVED" })),
+    _ecell(_t("Audit", "<b>Moved to audit</b> — flags contains MOVED_TO_AUDIT."),
+      renderEventRow({ event:"flags: MOVED_TO_AUDIT", status:"ok", time:"2026-07-28 14:30" })),
+    _ecell(_t("account (E-1)", "<b>Current Account created</b> — pairs with the Alerts P0 and the Account-creation milestone. Not received is the account-not-created diagnosis."),
+      renderEventRow({ event:"user_states: CURRENT_ACCOUNT_CREATED", status:"err", time:"not received" }) +
+      renderEventRow({ event:"user_states: CURRENT_ACCOUNT_CREATED", status:"ok", time:"2026-08-01 11:40" })),
+  ];
+
+  const sec = (title, sub, cells) =>
+    `<div class="spec-section-title">${title}<span class="ms-sub">${sub}</span></div><div class="spec-grid">${cells.join("")}</div>`;
+
+  document.getElementById("body").innerHTML =
+    sec("Representative", "a full card as it appears live", [rep]) +
+    sec("Delivery states (E-2)", "Received · Not received · Pending · empty", states) +
+    sec("Events covered", "Business Details · VKYC · Audit · Current Account creation", covered);
+}
+build();
+</script>
+</body>
+</html>

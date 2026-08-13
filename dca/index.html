@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ops Dashboard — DCA Onboarding Status</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+<div class="topbar">
+  <div class="sp-brand"><span class="dot"></span>Spacce <span class="sp-cx">CX · DCA</span></div>
+  <div class="sp-topsearch">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search for a merchant — UUID or phone" onkeydown="if(event.key==='Enter')doSearch()" />
+    <span class="kbd">&#8984;K</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <details class="devnav">
+      <summary class="sp-qa-btn">Dev references &#9662;</summary>
+      <div class="devnav-menu">
+        <a href="journey-states.html">Journey states</a>
+        <a href="alerts-states.html">Alerts card states</a>
+        <a href="checks-states.html">Checks states</a>
+        <a href="event-delivery-states.html">Event delivery states</a>
+      </div>
+    </details>
+    <button onclick="toggleTestPanel()" id="testPanelBtn" class="sp-qa-btn">QA · Test cases</button>
+    <div class="sp-user"><span class="av">CX</span>DCA on-call &#9662;</div>
+  </div>
+</div>
+
+<div class="app-wrap">
+<div id="testPanel" class="tc-sidebar">
+  <div class="tc-sidebar-head">
+    <span class="tc-sidebar-label">QA · Test cases (DCA — 13-step flow)</span>
+    <button onclick="closeTestPanel()" style="background:transparent;border:none;color:#4A5568;cursor:pointer;font-size:14px;line-height:1;padding:0;">&#10005;</button>
+  </div>
+  <div class="tc-list">
+    <div class="tc-list-inner">
+      <div class="tc-group">
+        <div class="tc-section-header">Happy path</div>
+        <div class="tc-row" onclick="loadTest('dca_happy_path')" data-uuid="dca_happy_path"><span class="tc-num">1</span>Full happy path — CKYC route, approved, CA created</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">PAN validation</div>
+        <div class="tc-row" onclick="loadTest('dca_non_individual_pan')" data-uuid="dca_non_individual_pan"><span class="tc-num">2</span>Non-individual PAN (partnership) — blocked</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">CKYC / Aadhaar paths</div>
+        <div class="tc-row" onclick="loadTest('dca_ckyc_path')" data-uuid="dca_ckyc_path"><span class="tc-num">3</span>CKYC path — Sarsai OTP verified</div>
+        <div class="tc-row" onclick="loadTest('dca_aadhaar_path')" data-uuid="dca_aadhaar_path"><span class="tc-num">4</span>Aadhaar path — no CKYC data, direct Aadhaar</div>
+        <div class="tc-row" onclick="loadTest('dca_ckyc_fallback')" data-uuid="dca_ckyc_fallback"><span class="tc-num">5</span>CKYC fallback — 3 wrong OTPs, switched to Aadhaar</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Business verification blocks</div>
+        <div class="tc-row" onclick="loadTest('dca_udyam_block')" data-uuid="dca_udyam_block"><span class="tc-num">6</span>Udyam not verified — mandatory block at step 6</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_invalid')" data-uuid="dca_gst_invalid"><span class="tc-num">7</span>GST invalid / cancelled — stuck at step 7</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Pre-VKYC fraud</div>
+        <div class="tc-row" onclick="loadTest('dca_pre_vkyc_fraud')" data-uuid="dca_pre_vkyc_fraud"><span class="tc-num">8</span>Pre-VKYC fraud block — blacklisted, VKYC skipped</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">VKYC</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_rejected')" data-uuid="dca_vkyc_rejected"><span class="tc-num">9</span>VKYC rejected — FACE_MISMATCH</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Post-VKYC checks</div>
+        <div class="tc-row" onclick="loadTest('dca_post_vkyc_dedupe')" data-uuid="dca_post_vkyc_dedupe"><span class="tc-num">10</span>Post-VKYC dedupe — PAN conflict</div>
+        <div class="tc-row" onclick="loadTest('dca_post_vkyc_redflag')" data-uuid="dca_post_vkyc_redflag"><span class="tc-num">11</span>Post-VKYC redflag — blocker redflag</div>
+        <div class="tc-row" onclick="loadTest('dca_audit_declined')" data-uuid="dca_audit_declined"><span class="tc-num">12</span>Audit declined — CONCURRENT_AUDIT_REVIEW_DECLINED</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Account creation (P0)</div>
+        <div class="tc-row" onclick="loadTest('dca_account_not_created')" data-uuid="dca_account_not_created"><span class="tc-num">13</span>Approved but Current Account not created</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — out-of-scope</div>
+        <div class="tc-row" onclick="loadTest('dca_edi_out_of_scope')" data-uuid="dca_edi_out_of_scope"><span class="tc-num">14</span>EDI-flagged application — not DCA</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="mainContent" style="align-content:start;">
+  <div style="grid-column:1/-1;">
+    <div class="empty">
+      <div class="empty-icon">&#128269;</div>
+      <h3>Look up a DCA merchant</h3>
+      <p>Enter a UUID or phone number above. Try <code style="background:var(--border);padding:1px 6px;border-radius:4px;font-size:12px;">dca_happy_path</code> to see a sample, or open <strong>QA · Test cases</strong>.</p>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- /.app-wrap -->
+<div id="copyToast"></div>
+<script src="render.js"></script>
+<script>
+// ops_dashboard (DCA) — mock data + step builders.
+// 13-milestone corrected DCA flow. Same architecture as before: USERS object + renderApp
+// pattern with hand-authored test data per user.
+
+const USERS = {
+
+  // ── 1. Happy path (CKYC route) ────────────────────────────────────────────
+  dca_happy_path: {
+    uuid: "b3f2a9c1-7e41-4d2a-9c3f-1a2b3c4d5e6f", name: "Rekha Traders (Rekha Nair)",
+    phone: "98450 11223", email: "rekha.traders@gmail.com",
+    applications: [{
+      id: "app_dca_001", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "Current Account active",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-01 11:40",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-28 09:10" },
+      gst: { status: "verified", source: "bureau_id_gstin_advanced_details (product_flow=2)", ts: "2026-07-28 09:20" },
+      udyam: { status: "verified", ts: "2026-07-28 09:22" },
+      vkyc: { status: "APPROVED", ts: "2026-07-30 15:05" },
+      audit: null,
+      accountCreated: { status: "created", ts: "2026-08-01 11:40" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"User selected Current Account card, acknowledged KYC consent and <10cr banking exposure declaration. Continued.", ts:"2026-07-28 09:00" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered. Background APIs: GST auto-fetch OK, Udyam auto-fetch OK, CKYC data FOUND.", ts:"2026-07-28 09:08" },
+        { num:"03", name:"Business Details", status:"done", detail:"Registered business name, business category, annual sales, annual income captured.", ts:"2026-07-28 09:12" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business name auto-prefilled. Address line 1, line 2, pincode, city captured.", ts:"2026-07-28 09:15" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC data found at PAN step. CKYC screen shown (Sarsai OTP). OTP verified successfully.",
+          ckycAadhaar:{ path:"ckyc", detail:"CKYC data found — verified via Sarsai OTP on first attempt" }, ts:"2026-07-28 09:20" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam Registration Number entered (UDYAM-KA-03-0012345). Verified.", ts:"2026-07-28 09:22" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST number entered. Linked to PAN, valid, active, not cancelled.", ts:"2026-07-28 09:24" },
+        { num:"08", name:"Verify Details", status:"done", detail:"Verified: name, business name, residential address, business address, Udyam, GST. Nominee added.", ts:"2026-07-28 09:30" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud API called. Result: not blacklisted. Proceeding to VKYC.",
+          fraudCheck:{ status:"clear", ts:"2026-07-28 09:32" }, ts:"2026-07-28 09:32" },
+        { num:"10", name:"VKYC", status:"done", detail:"VKYC call initiated. Selfie captured, PAN captured, questions answered. VKYC approved.",
+          vkycOutcome:{ status:"APPROVED", ts:"2026-07-30 15:05" }, ts:"2026-07-30 15:05" },
+        { num:"11", name:"Post-VKYC Checks", status:"done", detail:"All post-VKYC checks passed sequentially.",
+          postVkycPipeline:{ checks:[
+            {name:"Dedupe", status:"pass"},
+            {name:"Redflag", status:"pass"},
+            {name:"Fraud", status:"pass"},
+            {name:"Audit", status:"skip", reason:"not routed"}
+          ]}, ts:"2026-08-01 10:00" },
+        { num:"12", name:"Decision", status:"done", detail:"KYC_APPROVED", ts:"2026-08-01 10:15" },
+        { num:"13", name:"Current Account Creation", status:"done", detail:"CURRENT_ACCOUNT_CREATED property set (user_states). User landed on home screen with active CA.",
+          accountCreation:{ nodes:[{name:"KYC",status:"pass"},{name:"Redflag",status:"pass"},{name:"Account",status:"pass"}] }, ts:"2026-08-01 11:40" },
+      ],
+      webhooks: [
+        { event: "flags: BUSINESS_DETAILS_SUBMITTED", status: "ok", time: "2026-07-28 09:30" },
+        { event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-30 15:05" },
+        { event: "user_states: KYC_APPROVED", status: "ok", time: "2026-08-01 10:15" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "ok", time: "2026-08-01 11:40" },
+      ],
+    }],
+  },
+
+  // ── 2. Non-individual PAN ─────────────────────────────────────────────────
+  dca_non_individual_pan: {
+    uuid: "1c9d8e77-2b4a-4f11-8a6c-9e0f1a2b3c44", name: "Kalyan & Partners LLP",
+    phone: "90000 12121", email: "kalyan.partners@gmail.com",
+    applications: [{
+      id: "app_dca_002", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Non-individual PAN — blocked at PAN Screen",
+      state: "REJECTED", currentStep: 2, updatedAt: "2026-07-15 10:02",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"User selected Current Account card. KYC consent and banking exposure acknowledged.", ts:"2026-07-15 09:55" },
+        { num:"02", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered (non-individual). Only individual PANs are accepted. Cannot proceed.",
+          panBlock:{ blocked:true, reason:"Non-individual PAN (Partnership firm) — only individual PANs are accepted for DCA onboarding." } },
+        { num:"03", name:"Business Details", status:"pending", detail:"Not reached — blocked upstream" },
+        { num:"04", name:"Business Address", status:"pending", detail:"Not reached" },
+        { num:"05", name:"CKYC / Aadhaar", status:"pending", detail:"Not reached" },
+        { num:"06", name:"Udyam Aadhaar", status:"pending", detail:"Not reached" },
+        { num:"07", name:"GST Screen", status:"pending", detail:"Not reached" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: BUSINESS_DETAILS_SUBMITTED", status: "err", time: "not received — blocked at PAN Screen" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received" },
+      ],
+    }],
+  },
+
+  // ── 3. CKYC path taken ────────────────────────────────────────────────────
+  dca_ckyc_path: {
+    uuid: "3a1b2c33-4d5e-6f77-8a9b-0c1d2e3f4a55", name: "Shanti Provisions (Shanti Devi)",
+    phone: "97000 33445", email: "shanti.provisions@gmail.com",
+    applications: [{
+      id: "app_dca_003", type: "dca_onboarding", label: "DCA",
+      status: "pending", overallLabel: "CKYC path verified — at Udyam Aadhaar step",
+      state: "PENDING", currentStep: 6, updatedAt: "2026-07-22 10:00",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-22 09:08" },
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-22 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered. CKYC data FOUND at PAN step (background API). GST auto-fetch pending, Udyam auto-fetch pending.", ts:"2026-07-22 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Registered business name, category, annual sales/income captured.", ts:"2026-07-22 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-22 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC data found at PAN step. CKYC screen shown — Sarsai OTP sent and verified. CKYC verification complete.",
+          ckycAadhaar:{ path:"ckyc", detail:"CKYC data found — verified via Sarsai OTP" }, ts:"2026-07-22 09:10" },
+        { num:"06", name:"Udyam Aadhaar", status:"stuck", detail:"Awaiting Udyam number entry. User has not entered Udyam Registration or Udyam Assist number yet.", ts:"2026-07-22 10:00" },
+        { num:"07", name:"GST Screen", status:"pending", detail:"Not reached" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: CKYC_VERIFIED", status: "ok", time: "2026-07-22 09:10" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "pending", time: "waiting on downstream milestones" },
+      ],
+    }],
+  },
+
+  // ── 4. Aadhaar path (no CKYC data) ───────────────────────────────────────
+  dca_aadhaar_path: {
+    uuid: "4b2c3d44-5e6f-7a88-9b0c-1d2e3f4a5b66", name: "Rajan Auto Works (Rajan Kumar)",
+    phone: "96000 44556", email: "rajan.autoworks@gmail.com",
+    applications: [{
+      id: "app_dca_004", type: "dca_onboarding", label: "DCA",
+      status: "pending", overallLabel: "Aadhaar path — at Udyam Aadhaar step",
+      state: "PENDING", currentStep: 6, updatedAt: "2026-07-23 11:30",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-23 09:08" },
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-23 09:00" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered. CKYC data NOT FOUND (background API). Will go to Aadhaar directly at step 5.", ts:"2026-07-23 09:05" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-23 09:10" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-23 09:15" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"No CKYC data found. Went directly to Aadhaar screen. Aadhaar number entered, OTP verified.",
+          ckycAadhaar:{ path:"aadhaar", detail:"No CKYC data found — verified via Aadhaar directly (phone number + OTP)" }, ts:"2026-07-23 09:25" },
+        { num:"06", name:"Udyam Aadhaar", status:"stuck", detail:"At Udyam entry step. User needs to enter Udyam Registration Number (UDYAM-XX-00-0000000) or Udyam Assist Number.", ts:"2026-07-23 11:30" },
+        { num:"07", name:"GST Screen", status:"pending", detail:"Not reached" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: AADHAAR_VERIFIED", status: "ok", time: "2026-07-23 09:25" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "pending", time: "waiting on downstream milestones" },
+      ],
+    }],
+  },
+
+  // ── 5. CKYC fallback (3 wrong OTPs → Aadhaar) ────────────────────────────
+  dca_ckyc_fallback: {
+    uuid: "5c3d4e55-6f7a-8b99-0c1d-2e3f4a5b6c77", name: "Meera Boutique (Meera Sharma)",
+    phone: "95000 55667", email: "meera.boutique@gmail.com",
+    applications: [{
+      id: "app_dca_005", type: "dca_onboarding", label: "DCA",
+      status: "pending", overallLabel: "CKYC fallback to Aadhaar — at GST Screen",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-07-24 14:00",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-24 09:05" },
+      gst: null,
+      udyam: { status: "verified", ts: "2026-07-24 09:40" },
+      vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-24 09:00" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered. CKYC data FOUND (background API).", ts:"2026-07-24 09:05" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-24 09:10" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-24 09:15" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:'CKYC data found. CKYC screen shown (Sarsai OTP). 3 wrong OTP attempts. "Try another way" shown. Switched to Aadhaar. Aadhaar verified.',
+          ckycAadhaar:{ path:"fallback", otpAttempts:3, detail:'CKYC found but 3 wrong OTPs — "try another way" — switched to Aadhaar, verified' }, ts:"2026-07-24 09:30" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam Assist Number entered (UDYAM-I-MH-07-0009876). Verified.", ts:"2026-07-24 09:40" },
+        { num:"07", name:"GST Screen", status:"stuck", detail:"Awaiting GST number entry. Must be linked to PAN, valid, active, not cancelled.", ts:"2026-07-24 14:00" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: CKYC_FALLBACK_TO_AADHAAR", status: "ok", time: "2026-07-24 09:30" },
+        { event: "flags: UDYAM_VERIFIED", status: "ok", time: "2026-07-24 09:40" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "pending", time: "waiting on downstream milestones" },
+      ],
+    }],
+  },
+
+  // ── 6. Udyam block (mandatory) ────────────────────────────────────────────
+  dca_udyam_block: {
+    uuid: "6d4e5f66-7a8b-9c00-1d2e-3f4a5b6c7d88", name: "Shree Ganesh Textiles",
+    phone: "94000 66778", email: "shreeganesh.textiles@gmail.com",
+    applications: [{
+      id: "app_dca_006", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Udyam not verified — mandatory block at step 6",
+      state: "PENDING", currentStep: 6, updatedAt: "2026-07-25 16:45",
+      businessVerificationStatus: "PENDING", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-25 10:00" },
+      gst: null,
+      udyam: { status: "not_verified", ts: "2026-07-25 16:45" },
+      vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-25 09:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered. CKYC data found. Udyam auto-fetch returned empty.", ts:"2026-07-25 09:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-25 10:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-25 10:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC screen shown, Sarsai OTP verified.",
+          ckycAadhaar:{ path:"ckyc" }, ts:"2026-07-25 10:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"stuck", detail:"Udyam number not entered / not verified. Both formats accepted: UDYAM-XX-00-0000000 (Registration) and UDYAM-I-XX-00-0000000 (Assist). Mandatory — cannot proceed without.", ts:"2026-07-25 16:45" },
+        { num:"07", name:"GST Screen", status:"pending", detail:"Not reached — blocked upstream" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: UDYAM_VERIFIED", status: "err", time: "not received — Udyam gate not satisfied" },
+      ],
+    }],
+  },
+
+  // ── 7. GST invalid / cancelled ────────────────────────────────────────────
+  dca_gst_invalid: {
+    uuid: "7e5f6a77-8b9c-0d11-2e3f-4a5b6c7d8e99", name: "Anand Hardware & Fittings",
+    phone: "93000 77889", email: "anand.hardware@gmail.com",
+    applications: [{
+      id: "app_dca_007", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "GST invalid / cancelled — stuck at GST Screen",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-07-26 15:20",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-26 09:00" },
+      gst: { status: "invalid", reason: "GST number is cancelled / not linked to PAN", ts: "2026-07-26 15:20" },
+      udyam: { status: "verified", ts: "2026-07-26 09:35" },
+      vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-26 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-26 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-26 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-26 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar path taken (no CKYC data). Verified.",
+          ckycAadhaar:{ path:"aadhaar" }, ts:"2026-07-26 09:20" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam Registration Number entered and verified.", ts:"2026-07-26 09:35" },
+        { num:"07", name:"GST Screen", status:"stuck", detail:"GST number entered but validation failed. Must be: linked to PAN, valid, active, not cancelled. The entered GST is cancelled.",
+          fields:[{v:"GST validation: FAILED",bad:true},{v:"Reason: GST_CANCELLED / NOT_LINKED_TO_PAN",bad:true}], ts:"2026-07-26 15:20" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached — blocked upstream" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
+        { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: GST_VERIFIED", status: "err", time: "not received — GST validation failed" },
+      ],
+    }],
+  },
+
+  // ── 8. Pre-VKYC fraud block (blacklisted) ─────────────────────────────────
+  dca_pre_vkyc_fraud: {
+    uuid: "8f6a7b88-9c0d-1e22-3f4a-5b6c7d8e9f00", name: "Deepak Enterprises",
+    phone: "92000 88990", email: "deepak.enterprises@gmail.com",
+    applications: [{
+      id: "app_dca_008", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Pre-VKYC fraud block — blacklisted, VKYC skipped, rejected",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-07-27 10:05",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "hard_block", reason: "USER_BLACKLISTED (slice_x_redflags, validated=true) — detected at pre-VKYC fraud check", ts: "2026-07-27 10:02" },
+      gst: { status: "verified", ts: "2026-07-27 09:30" },
+      udyam: { status: "verified", ts: "2026-07-27 09:28" },
+      vkyc: { status: "SKIPPED", ts: "2026-07-27 10:02" },
+      audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 1,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-27 09:00" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-27 09:05" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-27 09:10" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-27 09:15" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC path taken, verified.",
+          ckycAadhaar:{ path:"ckyc" }, ts:"2026-07-27 09:20" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-27 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-27 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-27 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"stuck", detail:"Pre-VKYC fraud API called. Result: USER_BLACKLISTED. VKYC skipped entirely. Application routed to rejection.",
+          fraudCheck:{ status:"blacklisted", reason:"USER_BLACKLISTED (slice_x_redflags, validated=true)", ts:"2026-07-27 10:02" }, ts:"2026-07-27 10:02" },
+        { num:"10", name:"VKYC", status:"skip", detail:"Skipped — fraud block before VKYC" },
+        { num:"11", name:"Post-VKYC Checks", status:"skip", detail:"Skipped — fraud block before VKYC" },
+        { num:"12", name:"Decision", status:"stuck", detail:"REJECTED — pre-VKYC fraud hard block (USER_BLACKLISTED)", ts:"2026-07-27 10:05" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "flags: BUSINESS_DETAILS_SUBMITTED", status: "ok", time: "2026-07-27 09:45" },
+        { event: "fraud_check: USER_BLACKLISTED", status: "ok", time: "2026-07-27 10:02" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — rejected pre-VKYC" },
+      ],
+    }],
+  },
+
+  // ── 9. VKYC rejected (FACE_MISMATCH) ─────────────────────────────────────
+  dca_vkyc_rejected: {
+    uuid: "9a7b8c99-0d1e-2f33-4a5b-6c7d8e9f0a11", name: "Lakshmi Fashion House",
+    phone: "91000 99001", email: "lakshmi.fashion@gmail.com",
+    applications: [{
+      id: "app_dca_009", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC rejected — FACE_MISMATCH",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-07-28 11:20",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-26 09:00" },
+      gst: { status: "verified", ts: "2026-07-26 09:30" },
+      udyam: { status: "verified", ts: "2026-07-26 09:28" },
+      vkyc: { status: "REJECTED", rejectionReason: "FACE_MISMATCH", ts: "2026-07-28 11:20" },
+      audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-26 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-26 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-26 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-26 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC path taken, verified.",
+          ckycAadhaar:{ path:"ckyc" }, ts:"2026-07-26 09:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-26 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-26 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-26 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud check: clear.",
+          fraudCheck:{ status:"clear", ts:"2026-07-26 09:50" }, ts:"2026-07-26 09:50" },
+        { num:"10", name:"VKYC", status:"stuck", detail:"VKYC call completed. Agent rejected — FACE_MISMATCH. Selfie did not match PAN photo.",
+          vkycOutcome:{ status:"REJECTED", rejectionReason:"FACE_MISMATCH", ts:"2026-07-28 11:20" }, ts:"2026-07-28 11:20" },
+        { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached — blocked by VKYC rejection" },
+        { num:"12", name:"Decision", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-28 11:20 — status REJECTED" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — VKYC rejected" },
+      ],
+    }],
+  },
+
+  // ── 10. Post-VKYC dedupe (PAN conflict) ───────────────────────────────────
+  dca_post_vkyc_dedupe: {
+    uuid: "0b8c9d00-1e2f-3a44-5b6c-7d8e9f0a1b22", name: "Om Sai General Store",
+    phone: "90000 00112", email: "omsai.store@gmail.com",
+    applications: [{
+      id: "app_dca_010", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Post-VKYC dedupe — PAN conflict, rejected",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-07-29 12:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "post_vkyc_dedupe", reason: "PAN_DEDUPE_EXISTS_WITH_DIFFERENT_UUID (post-VKYC dedupe check)", ts: "2026-07-29 12:30" },
+      gst: { status: "verified", ts: "2026-07-27 09:30" },
+      udyam: { status: "verified", ts: "2026-07-27 09:28" },
+      vkyc: { status: "APPROVED", ts: "2026-07-29 10:00" },
+      audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 1,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-27 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-27 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-27 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-27 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar path taken, verified.",
+          ckycAadhaar:{ path:"aadhaar" }, ts:"2026-07-27 09:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-27 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-27 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-27 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud check: clear.",
+          fraudCheck:{ status:"clear", ts:"2026-07-27 09:50" }, ts:"2026-07-27 09:50" },
+        { num:"10", name:"VKYC", status:"done", detail:"VKYC approved.",
+          vkycOutcome:{ status:"APPROVED", ts:"2026-07-29 10:00" }, ts:"2026-07-29 10:00" },
+        { num:"11", name:"Post-VKYC Checks", status:"stuck", detail:"Dedupe check found PAN registered under a different UUID. Pipeline halted.",
+          postVkycPipeline:{ checks:[
+            {name:"Dedupe", status:"fail", reason:"PAN conflict — existing UUID 9f3e2d11-aaaa-4bbb-8ccc-111122223333"},
+            {name:"Redflag", status:"skip"},
+            {name:"Fraud", status:"skip"},
+            {name:"Audit", status:"skip"}
+          ]}, ts:"2026-07-29 12:30" },
+        { num:"12", name:"Decision", status:"stuck", detail:"REJECTED — post-VKYC dedupe conflict (PAN registered under different UUID)", ts:"2026-07-29 12:30" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-29 10:00 — status APPROVED" },
+        { event: "post_vkyc: DEDUPE_FAIL", status: "ok", time: "2026-07-29 12:30" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — rejected post-VKYC" },
+      ],
+    }],
+  },
+
+  // ── 11. Post-VKYC redflag (blocker) ───────────────────────────────────────
+  dca_post_vkyc_redflag: {
+    uuid: "1c9d0e11-2f3a-4b55-6c7d-8e9f0a1b2c33", name: "Sunrise Electricals",
+    phone: "89000 11223", email: "sunrise.electricals@gmail.com",
+    applications: [{
+      id: "app_dca_011", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Post-VKYC blocker redflag — rejected",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-07-30 10:05",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "post_vkyc_redflag", reason: "Blocker redflag detected in post-VKYC checks (slice_x_redflags)", ts: "2026-07-30 10:05" },
+      gst: { status: "verified", ts: "2026-07-28 09:30" },
+      udyam: { status: "verified", ts: "2026-07-28 09:28" },
+      vkyc: { status: "APPROVED", ts: "2026-07-29 14:00" },
+      audit: null,
+      accountCreated: { status: "not_reached" },
+      redflagCount: 1,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-28 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-28 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-28 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-28 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC path taken, verified.",
+          ckycAadhaar:{ path:"ckyc" }, ts:"2026-07-28 09:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-28 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-28 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-28 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud check: clear.",
+          fraudCheck:{ status:"clear", ts:"2026-07-28 09:50" }, ts:"2026-07-28 09:50" },
+        { num:"10", name:"VKYC", status:"done", detail:"VKYC approved.",
+          vkycOutcome:{ status:"APPROVED", ts:"2026-07-29 14:00" }, ts:"2026-07-29 14:00" },
+        { num:"11", name:"Post-VKYC Checks", status:"stuck", detail:"Dedupe passed. Blocker redflag found — pipeline halted at redflag check.",
+          postVkycPipeline:{ checks:[
+            {name:"Dedupe", status:"pass"},
+            {name:"Redflag", status:"fail", reason:"blocker redflag — SANCTIONS_LIST_MATCH"},
+            {name:"Fraud", status:"skip"},
+            {name:"Audit", status:"skip"}
+          ]}, ts:"2026-07-30 10:05" },
+        { num:"12", name:"Decision", status:"stuck", detail:"REJECTED — post-VKYC blocker redflag", ts:"2026-07-30 10:05" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-29 14:00 — status APPROVED" },
+        { event: "post_vkyc: REDFLAG_BLOCKER", status: "ok", time: "2026-07-30 10:05" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — rejected post-VKYC" },
+      ],
+    }],
+  },
+
+  // ── 12. Audit declined (CONCURRENT_AUDIT_REVIEW_DECLINED) ─────────────────
+  dca_audit_declined: {
+    uuid: "2d0e1f22-3a4b-5c66-7d8e-9f0a1b2c3d44", name: "Vinayak Provision Store",
+    phone: "88000 22334", email: "vinayak.provisions@gmail.com",
+    applications: [{
+      id: "app_dca_012", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Declined post-audit — CONCURRENT_AUDIT_REVIEW_DECLINED",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-07-31 17:15",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "audit_declined", reason: "CONCURRENT_AUDIT_REVIEW_DECLINED (slice_x_redflags)", ts: "2026-07-31 17:15" },
+      gst: { status: "verified", ts: "2026-07-28 09:30" },
+      udyam: { status: "verified", ts: "2026-07-28 09:28" },
+      vkyc: { status: "APPROVED", ts: "2026-07-30 12:00" },
+      audit: { status: "declined", reason: "CONCURRENT_AUDIT_REVIEW_DECLINED", ts: "2026-07-31 17:15" },
+      accountCreated: { status: "not_reached" },
+      redflagCount: 1,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-28 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-28 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-28 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-28 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"CKYC path taken, verified.",
+          ckycAadhaar:{ path:"ckyc" }, ts:"2026-07-28 09:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-28 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-28 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-28 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud check: clear.",
+          fraudCheck:{ status:"clear", ts:"2026-07-28 09:50" }, ts:"2026-07-28 09:50" },
+        { num:"10", name:"VKYC", status:"done", detail:"VKYC approved.",
+          vkycOutcome:{ status:"APPROVED", ts:"2026-07-30 12:00" }, ts:"2026-07-30 12:00" },
+        { num:"11", name:"Post-VKYC Checks", status:"stuck", detail:"Dedupe passed. Redflag passed. Fraud passed. Audit check failed — CONCURRENT_AUDIT_REVIEW_DECLINED.",
+          postVkycPipeline:{ checks:[
+            {name:"Dedupe", status:"pass"},
+            {name:"Redflag", status:"pass"},
+            {name:"Fraud", status:"pass"},
+            {name:"Audit", status:"fail", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED"}
+          ]},
+          auditOutcome:{ outcome:"declined", note:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:"2026-07-31 17:15" },
+          ts:"2026-07-31 17:15" },
+        { num:"12", name:"Decision", status:"stuck", detail:"KYC_DECLINED — audit review declined", ts:"2026-07-31 17:15" },
+        { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-30 12:00 — status APPROVED" },
+        { event: "flags: MOVED_TO_AUDIT", status: "ok", time: "2026-07-30 14:30" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — declined post-audit" },
+      ],
+    }],
+  },
+
+  // ── 13. Approved but Current Account not created (P0) ─────────────────────
+  dca_account_not_created: {
+    uuid: "3e1f2a33-4b5c-6d77-8e9f-0a1b2c3d4e55", name: "Lakshmi Grocers",
+    phone: "87000 33445", email: "lakshmi.grocers@gmail.com",
+    applications: [{
+      id: "app_dca_013", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Approved — Current Account not created (P0)",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-01 09:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-29 09:00" },
+      gst: { status: "verified", ts: "2026-07-29 09:30" },
+      udyam: { status: "verified", ts: "2026-07-29 09:28" },
+      vkyc: { status: "APPROVED", ts: "2026-07-31 12:00" },
+      audit: null,
+      accountCreated: { status: "not_created" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-29 08:50" },
+        { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-29 08:55" },
+        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-29 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-29 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar path taken, verified.",
+          ckycAadhaar:{ path:"aadhaar" }, ts:"2026-07-29 09:15" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam verified.", ts:"2026-07-29 09:28" },
+        { num:"07", name:"GST Screen", status:"done", detail:"GST verified.", ts:"2026-07-29 09:30" },
+        { num:"08", name:"Verify Details", status:"done", detail:"All details verified.", ts:"2026-07-29 09:45" },
+        { num:"09", name:"Fraud Check (pre-VKYC)", status:"done", detail:"Pre-VKYC fraud check: clear.",
+          fraudCheck:{ status:"clear", ts:"2026-07-29 09:50" }, ts:"2026-07-29 09:50" },
+        { num:"10", name:"VKYC", status:"done", detail:"VKYC approved.",
+          vkycOutcome:{ status:"APPROVED", ts:"2026-07-31 12:00" }, ts:"2026-07-31 12:00" },
+        { num:"11", name:"Post-VKYC Checks", status:"done", detail:"All post-VKYC checks passed.",
+          postVkycPipeline:{ checks:[
+            {name:"Dedupe", status:"pass"},
+            {name:"Redflag", status:"pass"},
+            {name:"Fraud", status:"pass"},
+            {name:"Audit", status:"skip", reason:"not routed"}
+          ]}, ts:"2026-08-01 08:00" },
+        { num:"12", name:"Decision", status:"done", detail:"KYC_APPROVED", ts:"2026-08-01 08:30" },
+        { num:"13", name:"Current Account Creation", status:"stuck",
+          detail:"KYC approved, but no CURRENT_ACCOUNT_CREATED property row exists in user_state_repository_db_gold.user_states for this uuid. This is the DCA analogue of the source tool's cif-null fingerprint.",
+          fields:[{v:"KYC_APPROVED: YES",ok:true},{v:"CURRENT_ACCOUNT_CREATED: not found",bad:true}],
+          accountCreation:{ nodes:[{name:"KYC",status:"pass"},{name:"Redflag",status:"pass"},{name:"Account",status:"blocked",reason:"no user_states row"}] }, ts:"2026-08-01 09:00" },
+      ],
+      webhooks: [
+        { event: "flags: KYC_APPROVED (decision)", status: "ok", time: "2026-08-01 08:30" },
+        { event: "user_states: CURRENT_ACCOUNT_CREATED", status: "err", time: "not received — 24+ hrs since approval" },
+      ],
+    }],
+  },
+
+  // ── 14. EDI-flagged application — out of scope ────────────────────────────
+  dca_edi_out_of_scope: {
+    uuid: "e1d2c3b4-a5f6-4a77-b8c9-d0e1f2a3b4c5", name: "[Test] EDI-flagged application (ONBOARDING_PLATFORM_SYNC)",
+    phone: "80000 66778", email: "test.edi.outofscope@slice.in",
+    applications: [{
+      id: "app_edi_001", type: "edi_platform_sync", label: "EDI (out of scope)",
+      status: "active", overallLabel: "EDI application — not DCA",
+      updatedAt: "2026-07-30 09:00",
+    }],
+  },
+
+};
+
+// ops_dashboard (DCA) — state, render logic, and event wiring
+
+// ── state ────────────────────────────────────────────────────────────────────
+let currentUser = null;
+let selectedAppIdx = 0;
+
+// In-scope application type for this dashboard: DCA only.
+const IN_SCOPE_TYPES = new Set(["dca_onboarding"]);
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+function journeyTypeLabel(type) {
+  if (type === "dca_onboarding") return "DCA";
+  if (type === "edi_platform_sync") return "EDI (out of scope)";
+  return (type || "—").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+function copyVal(txt, e) {
+  if (e) e.stopPropagation();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt);
+  const t = document.getElementById("copyToast");
+  if (t) { t.textContent = "Copied  " + txt; t.classList.add("show"); clearTimeout(window._ct); window._ct = setTimeout(() => t.classList.remove("show"), 1400); }
+}
+function nowStamp() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+function refreshView() { if (currentUser) renderApp(currentUser, currentUser.applications[selectedAppIdx]); }
+function toggleEventLog() { const d = document.getElementById("eventLog"); if (d) d.style.display = d.style.display === "none" ? "block" : "none"; }
+
+function dotClass(s) { return { done:"dot-done", stuck:"dot-stuck", warn:"dot-warn", pending:"dot-pending", skip:"dot-skip", reset:"dot-reset" }[s] || "dot-pending"; }
+function statusTag(s) {
+  const map = {
+    stuck:     ["tag-stuck",     "⚠ Stuck"],
+    active:    ["tag-active",    "✓ Active"],
+    review:    ["tag-review",    "↻ In Review"],
+    pending:   ["tag-pending",   "⏳ Pending"],
+    blocked:   ["tag-blocked",   "✗ Blocked"],
+    abandoned: ["tag-abandoned", "○ Abandoned"],
+  };
+  return map[s] || ["tag-neutral", s];
+}
+
+// ── Alerts: DERIVED from the fetched per-application fields ─────────────────
+function deriveAlerts(u, app) {
+  if (!IN_SCOPE_TYPES.has(app.type)) return [];
+  const A = [];
+  const add = (level, title, body) => A.push({ level, title, body });
+  const f = app.fraud, g = app.gst, ud = app.udyam, v = app.vkyc, aud = app.audit, ac = app.accountCreated;
+
+  // ── P0 ──
+  if (f && f.status === "hard_block")
+    add("p0", "Pre-VKYC fraud block / blacklisted", f.reason || "USER_BLACKLISTED. Owner: Fraud squad.");
+  if (f && f.status === "post_vkyc_dedupe")
+    add("p0", "Post-VKYC dedupe conflict", f.reason || "PAN dedupe conflict found after VKYC. Owner: UID team.");
+  if (f && f.status === "post_vkyc_redflag")
+    add("p0", "Post-VKYC blocker redflag", f.reason || "Blocker redflag detected in post-VKYC checks.");
+  if (f && f.status === "audit_declined")
+    add("p0", "Declined post-audit", (f.reason || "CONCURRENT_AUDIT_REVIEW_DECLINED") + ". Owner: Review/Audit team.");
+  if (app.state === "APPROVED" && ac && ac.status === "not_created")
+    add("p0", "Account not created (P0)", "KYC approved, but no CURRENT_ACCOUNT_CREATED property row exists in user_states. This is the DCA analogue of the source tool's cif-null fingerprint.");
+  if (v && v.status === "REJECTED")
+    add("p0", "VKYC rejected", `Rejection reason: ${v.rejectionReason || "not specified"} (vkyc_details, product_flow=15).`);
+  if (ud && ud.status === "not_verified" && app.status === "stuck")
+    add("p0", "Udyam not verified — mandatory block", "Udyam Aadhaar step cannot pass without verification. User must enter UDYAM-XX-00-0000000 or UDYAM-I-XX-00-0000000.");
+
+  // ── P1 ──
+  if (g && g.status === "invalid")
+    add("p1", "GST invalid / cancelled", g.reason || "GST number is cancelled, invalid, or not linked to PAN.");
+  if (g && g.status === "not_verified")
+    add("p1", "GST not verified", "Informational only — check if GST is required for this merchant.");
+  if (v && v.status === "PENDING")
+    add("p1", "VKYC pending", `No update since ${v.ts || "scheduling"}.`);
+  if (v && v.status === "SKIPPED")
+    add("p1", "VKYC skipped", "VKYC was skipped due to pre-VKYC fraud block.");
+  if (aud && aud.status === "under_review")
+    add("p1", "In audit review", `Since ${aud.ts || "unknown"} (updated_at proxy).`);
+  if (app.state === "REJECTED" && app.redflagCount === 0 && !(f && (f.status === "hard_block" || f.status === "post_vkyc_dedupe" || f.status === "post_vkyc_redflag" || f.status === "audit_declined")))
+    add("p1", "Rejected — no red flag found", "No matching row in slice_x_redflags for this uuid. Flag for investigation.");
+
+  // ── info ──
+  // Non-individual PAN is informational at dashboard level (user is just blocked)
+  const panStep = (app.steps || []).find(s => s.panBlock && s.panBlock.blocked);
+  if (panStep) add("info", "Non-individual PAN entered", panStep.panBlock.reason || "Only individual PANs are accepted.");
+
+  // CKYC fallback path info
+  const ckycStep = (app.steps || []).find(s => s.ckycAadhaar && s.ckycAadhaar.path === "fallback");
+  if (ckycStep) add("info", "CKYC fallback to Aadhaar", "CKYC data was found but OTP verification failed. User switched to Aadhaar path.");
+
+  const rank = { p0: 0, p1: 1, info: 2 };
+  return A.sort((a, b) => rank[a.level] - rank[b.level]);
+}
+
+function criticalSourcesResolved(app) {
+  return app.sourcesUnavailable !== true;
+}
+
+function renderApp(u, app) {
+  const [tagCls, tagLabel] = statusTag(app.status);
+  const alerts = deriveAlerts(u, app);
+  const critical = criticalSourcesResolved(app);
+  const alertsHtml = !critical
+    ? `<div class="alert alert-p1"><span class="alert-label">CHECKS INCOMPLETE</span><strong>Some checks could not be fetched</strong><br>A critical source (redflags or account-creation property) is unavailable — this is not a clean "healthy" result.</div>`
+    : alerts.length
+      ? alerts.map(a => `
+        <div class="alert alert-${a.level}">
+          <span class="alert-label">${a.level.toUpperCase()}</span>
+          <strong>${a.title}</strong><br>${a.body}
+        </div>`).join("")
+      : `<div class="alert alert-info"><strong>No active alerts</strong> — journey looks healthy.</div>`;
+
+  const stepsHtml = (app.steps || []).map((step, i) => renderStep(step, i === app.steps.length - 1, i, app.updatedAt)).join("");
+  const whHtml = (app.webhooks || []).length
+    ? app.webhooks.map(renderEventRow).join("")
+    : `<div style="padding:12px 0;font-size:13px;color:var(--muted);">No events tracked for this application.</div>`;
+
+  const initials = u.name.replace(/[^A-Za-z ]/g,"").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase() || "U";
+  const [uTagCls, uTagLabel] = statusTag(app.status);
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sp-header">
+      <div class="sp-avatar">${initials}</div>
+      <div class="sp-head-main">
+        <div class="sp-name-row">
+          <span class="sp-name">${u.name}</span>
+          <span class="sp-uuid" onclick="copyVal('${u.uuid}',event)" title="Copy UUID">${u.uuid} &#10697;</span>
+        </div>
+        <div class="sp-contact">
+          <span>&#128222; ${u.phone} <span class="tick">&#10004;</span></span>
+          <span>&#9993;&#65039; ${u.email} <span class="tick">&#10004;</span></span>
+        </div>
+      </div>
+      <div class="sp-headstatus">
+        <span class="tag ${uTagCls}" style="font-size:12px;padding:5px 12px;">${uTagLabel}</span>
+        ${app.overallLabel ? `<span class="sp-overall">${app.overallLabel}</span>` : ""}
+        <span class="sp-asof">as of ${nowStamp()} · <span class="sp-refresh" onclick="refreshView()">&#10227; Refresh</span></span>
+      </div>
+    </div>
+
+    <div class="sp-body">
+      <div class="sp-left">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Alerts</span>
+            ${!critical
+              ? `<span class="tag tag-pending">checks incomplete</span>`
+              : alerts.length
+                ? `<span class="tag tag-stuck">${alerts.length} active</span>`
+                : `<span class="tag tag-active">CLEAR</span>`}
+          </div>
+          <div class="card-body" style="padding:14px 18px;">${alertsHtml}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Checks</span></div>
+          ${renderFraudCheck(app.fraud)}
+          ${renderGstCheck(app.gst)}
+          ${renderUdyamCheck(app.udyam)}
+          ${renderVkycCheck(app.vkyc)}
+          ${renderAuditCheck(app.audit)}
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Event delivery</span></div>
+          <div class="card-caveat">As of last fetch — DCA has no confirmed event log. "Received" means the flag/property was present in this snapshot, not that a discrete delivery event was observed.</div>
+          <div class="card-body" style="padding:4px 18px;">${whHtml}</div>
+        </div>
+      </div>
+
+      <div class="sp-right">
+        <div class="sp-section-title">Onboarding journey <span class="meta">Milestone ${app.currentStep} of ${(app.steps || []).length}</span></div>
+
+        <div class="sp-appmeta">
+          <span class="sp-typebadge">${journeyTypeLabel(app.type)}</span>
+          <span class="sp-metacell">App ID <b onclick="copyVal('${app.id}',event)" title="Copy application ID">${app.id} &#10697;</b></span>
+          ${app.updatedAt ? `<span class="sp-metacell">Updated <b>${app.updatedAt}</b></span>` : ""}
+          ${app.businessVerificationStatus ? `<span class="sp-metacell">Business verification <b>${app.businessVerificationStatus}</b></span>` : ""}
+          ${app.sourceChannel ? `<span class="sp-metacell">Source channel <b>${app.sourceChannel}</b></span>` : ""}
+        </div>
+
+        <div class="tl-card">
+          <div class="tl-list">${stepsHtml}</div>
+        </div>
+
+        <div class="sp-eventlog-wrap">
+          <button class="sp-eventlog-btn" onclick="toggleEventLog()">Full event log &#9662; <span class="sp-muted">(availability note)</span></button>
+          <div id="eventLog" class="sp-eventlog" style="display:none;">
+            <div class="el-row"><span class="el-action" style="color:var(--muted);font-style:italic;">DCA's primary source (slice_x_application_base) is a state snapshot, not an event log — a full raw action history is not available from this source. The milestones above are the fullest position-and-status view this data shape supports today.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUser(u) {
+  const inScope = u.applications.map((a, i) => IN_SCOPE_TYPES.has(a.type) ? i : -1).filter(i => i >= 0);
+  if (inScope.length === 0) { renderNoInScope(u); return; }
+  if (!inScope.includes(selectedAppIdx)) selectedAppIdx = inScope[0];
+  renderApp(u, u.applications[selectedAppIdx]);
+}
+
+function renderNoInScope(u) {
+  const initials = u.name.replace(/[^A-Za-z ]/g, "").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase() || "U";
+  const hasEDI = u.applications.some(a => a.type === "edi_platform_sync");
+  const kinds = [...new Set(u.applications.map(a => journeyTypeLabel(a.type)))].join(", ") || "none";
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sp-header">
+      <div class="sp-avatar">${initials}</div>
+      <div class="sp-head-main">
+        <div class="sp-name-row"><span class="sp-name">${u.name}</span><span class="sp-uuid" onclick="copyVal('${u.uuid}',event)">${u.uuid} &#10697;</span></div>
+        <div class="sp-contact"><span>&#128222; ${u.phone}</span><span>&#9993;&#65039; ${u.email}</span></div>
+      </div>
+    </div>
+    <div class="sp-body" style="display:block;">
+      <div class="sp-noscope">
+        <div class="sp-noscope-icon">&#9676;</div>
+        ${hasEDI
+          ? `<h3>This application is EDI, not DCA</h3>
+             <p>This dashboard covers <strong>DCA</strong> (legacy/direct current-account onboarding) only. This uuid's application carries <code>ONBOARDING_PLATFORM_SYNC</code> — it belongs to the EDI / merchant_lending flow.</p>
+             <span class="sp-edi-note">See the EDI on-call tool for this application (separate effort, out of scope here).</span>`
+          : `<h3>No DCA onboarding application</h3>
+             <p>This dashboard covers <strong>DCA</strong> (legacy/direct current-account onboarding) only.</p>
+             <p class="sp-muted">Applications on record (out of scope): ${kinds}</p>`}
+      </div>
+    </div>`;
+}
+
+function switchApp(idx) {
+  selectedAppIdx = idx;
+  renderApp(currentUser, currentUser.applications[idx]);
+}
+
+function closeTestPanel() {
+  document.getElementById("testPanel").classList.remove("open");
+  document.getElementById("testPanelBtn").classList.remove("on");
+}
+function toggleTestPanel() {
+  const p = document.getElementById("testPanel");
+  p.classList.toggle("open");
+  document.getElementById("testPanelBtn").classList.toggle("on", p.classList.contains("open"));
+}
+
+function loadTest(key) {
+  document.querySelectorAll(".tc-row").forEach(r => r.classList.remove("tc-active"));
+  const clicked = document.querySelector(`.tc-row[data-uuid="${key}"]`);
+  if (clicked) clicked.classList.add("tc-active");
+  const match = USERS[key];
+  if (match) { currentUser = match; selectedAppIdx = 0; renderUser(match); }
+}
+
+function doSearch() {
+  document.querySelectorAll(".tc-row").forEach(r => r.classList.remove("tc-active"));
+  const val = document.getElementById("searchInput").value.trim();
+  const match = Object.values(USERS).find(u =>
+    u.uuid === val || u.phone.replace(/\s/g,"") === val || Object.keys(USERS).find(k => USERS[k] === u) === val
+  );
+  if (match) {
+    currentUser = match;
+    selectedAppIdx = 0;
+    renderUser(match);
+  } else {
+    document.getElementById("mainContent").innerHTML = `
+      <div style="grid-column:1/-1;">
+        <div class="empty">
+          <div class="empty-icon">&#128683;</div>
+          <h3>Merchant not found</h3>
+          <p>No merchant found for "<strong>${val}</strong>". Try a UUID or 10-digit phone number, or open <strong>QA · Test cases</strong>.</p>
+        </div>
+      </div>`;
+  }
+}
+
+document.getElementById("searchInput").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+</script>
+</body>
+</html>

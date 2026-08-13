@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ops Dashboard — EDI Onboarding Status</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+<div class="topbar">
+  <div class="sp-brand"><span class="dot"></span>Spacce <span class="sp-cx">CX · EDI</span></div>
+  <div class="sp-topsearch">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search for a merchant — UUID or phone" onkeydown="if(event.key==='Enter')doSearch()" />
+    <span class="kbd">&#x2318;K</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button onclick="toggleTestPanel()" id="testPanelBtn" class="sp-qa-btn">QA · Test cases</button>
+    <div class="sp-user"><span class="av">CX</span>EDI on-call ▾</div>
+  </div>
+</div>
+
+<div class="app-wrap">
+<div id="testPanel" class="tc-sidebar">
+  <div class="tc-sidebar-head">
+    <span class="tc-sidebar-label">QA · Test cases (EDI)</span>
+    <button onclick="closeTestPanel()" style="background:transparent;border:none;color:#4A5568;cursor:pointer;font-size:14px;line-height:1;padding:0;">&#x2715;</button>
+  </div>
+  <div class="tc-list">
+    <div class="tc-list-inner">
+      <div class="tc-group">
+        <div class="tc-section-header">Happy path</div>
+        <div class="tc-row" onclick="loadTest('edi_happy_path')" data-uuid="edi_happy_path"><span class="tc-num">1</span>Full happy path — sanctioned, GST before VKYC, disbursed</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">PAN &amp; early blocks</div>
+        <div class="tc-row" onclick="loadTest('edi_non_individual_pan')" data-uuid="edi_non_individual_pan"><span class="tc-num">2</span>Non-individual PAN (Partnership) — blocked</div>
+        <div class="tc-row" onclick="loadTest('edi_credit_score')" data-uuid="edi_credit_score"><span class="tc-num">3</span>Credit score step — score 720 visible</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Account Aggregator</div>
+        <div class="tc-row" onclick="loadTest('edi_aa_bank_linking')" data-uuid="edi_aa_bank_linking"><span class="tc-num">4</span>AA bank OTP failed for one bank — stuck</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">KYC path (CKYC / Aadhaar)</div>
+        <div class="tc-row" onclick="loadTest('edi_ckyc_path')" data-uuid="edi_ckyc_path"><span class="tc-num">5</span>CKYC found — at Business Details</div>
+        <div class="tc-row" onclick="loadTest('edi_aadhaar_path')" data-uuid="edi_aadhaar_path"><span class="tc-num">6</span>No CKYC, Aadhaar direct — at Udyam</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Business verification</div>
+        <div class="tc-row" onclick="loadTest('edi_udyam_block')" data-uuid="edi_udyam_block"><span class="tc-num">7</span>Udyam not verified — stuck at step 10</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">VKYC &amp; post-VKYC</div>
+        <div class="tc-row" onclick="loadTest('edi_vkyc_rejected')" data-uuid="edi_vkyc_rejected"><span class="tc-num">8</span>VKYC rejected by agent</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Risk + sanction outcomes</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_approved_disbursed')" data-uuid="edi_risk_approved_disbursed"><span class="tc-num">9</span>Risk approved, sanctioned 5L, disbursed</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_approved_gst_pending')" data-uuid="edi_risk_approved_gst_pending"><span class="tc-num">10</span>Sanctioned 2L, GST pending (mandatory)</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_approved_cpv_skip')" data-uuid="edi_risk_approved_cpv_skip"><span class="tc-num">11</span>Sanctioned 1L, GST skipped via CPV</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_rejected_waitlist')" data-uuid="edi_risk_rejected_waitlist"><span class="tc-num">12</span>Risk rejected — waitlisted (score 580)</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Audit &amp; out-of-scope</div>
+        <div class="tc-row" onclick="loadTest('edi_audit_declined')" data-uuid="edi_audit_declined"><span class="tc-num">13</span>Audit declined — CONCURRENT_AUDIT_REVIEW_DECLINED</div>
+        <div class="tc-row" onclick="loadTest('edi_dca_out_of_scope')" data-uuid="edi_dca_out_of_scope"><span class="tc-num">14</span>DCA application — out of scope, not EDI</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="mainContent" style="align-content:start;">
+  <div style="grid-column:1/-1;">
+    <div class="empty">
+      <div class="empty-icon">&#x1F50D;</div>
+      <h3>Look up an EDI merchant</h3>
+      <p>Enter a UUID or phone number above. Try <code style="background:var(--border);padding:1px 6px;border-radius:4px;font-size:12px;">edi_happy_path</code> to see a sample, or open <strong>QA · Test cases</strong>.</p>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- /.app-wrap -->
+<div id="copyToast"></div>
+<script src="render.js"></script>
+<script>
+// ops_dashboard (EDI / merchant lending) -- mock data + step builders.
+// Architecture mirrors the DCA tool's index.html exactly (shared render.js +
+// styles.css, same USERS-object + renderApp pattern) -- only the data shape and card
+// contents differ. EDI = merchant_lending = business loan journey (16 milestones).
+
+const USERS = {
+
+  // -- 1. Happy path ----------------------------------------------------------------
+  edi_happy_path: {
+    uuid: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d", name: "Sharma Electronics (Vikram Sharma)",
+    phone: "98765 43210", email: "vikram.sharma@gmail.com",
+    applications: [{
+      id: "app_edi_001", type: "edi_onboarding", label: "EDI",
+      status: "active", overallLabel: "Loan disbursed -- full happy path",
+      state: "DISBURSED", currentStep: 16, updatedAt: "2026-08-10 14:30",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:10" },
+      risk: { status: "approved", ts: "2026-08-08 10:00" },
+      creditScoreCheck: { score: 745, source: "Bureau pull post-PAN", ts: "2026-08-05 09:15" },
+      aa: { status: "linked", detail: "3/3 banks linked via Ignoosis", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", source: "Auto-fetched at PAN step", ts: "2026-08-05 09:20" },
+      udyam: { status: "verified", ts: "2026-08-06 09:22" },
+      vkyc: { status: "APPROVED", ts: "2026-08-07 15:05" },
+      audit: null,
+      sanction: { amount: "3,00,000", ts: "2026-08-08 10:15" },
+      loanDisbursed: { status: "disbursed", amount: "3,00,000", ts: "2026-08-10 14:30" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured -- KYC records + <10cr banking exposure", ts:"2026-08-05 09:00" },
+        { num:"02", name:"Permissions", status:"done", detail:"Location, SMS, Installed Apps -- all granted", ts:"2026-08-05 09:02" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L, Purpose: Business expansion", loanRange:"1L - 5L", loanPurpose:"Business expansion", ts:"2026-08-05 09:05" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. Background: Udyam auto-fetched, GST auto-fetched", ts:"2026-08-05 09:08" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score fetched: 745", creditScore:745, ts:"2026-08-05 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"Consent given, OTP verified, 3 banks linked (SBI, HDFC, ICICI)", aaBanks:[{name:"SBI",status:"linked"},{name:"HDFC",status:"linked"},{name:"ICICI",status:"linked"}], ts:"2026-08-05 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC found at PAN step. Sarsai OTP verified. CKYC route completed.", ts:"2026-08-05 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Registered name, category, annual sales, annual income submitted", ts:"2026-08-05 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Business name auto-prefilled, address + pincode + city submitted", ts:"2026-08-05 11:10" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Udyam Registration Number verified", ts:"2026-08-06 09:22" },
+        { num:"11", name:"Verify Details", status:"done", detail:"User verified all details. No GST page here (comes later if needed).", ts:"2026-08-06 09:30" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC completed. Pre-VKYC fraud check passed. Post-VKYC: dedupe/redflag/audit/fraud all clear.", vkycOutcome:{ status:"APPROVED", ts:"2026-08-07 15:05" }, ts:"2026-08-07 15:05" },
+        { num:"13", name:"Post-VKYC Outcome", status:"done", detail:"Case 2: Risk approved + KYC approved + Audit approved + No fraud = VKYC Verified", postVkycOutcome:{ case:"approved", ts:"2026-08-08 10:00" }, ts:"2026-08-08 10:00" },
+        { num:"14", name:"Sanction Screen", status:"done", detail:"Approved loan limit: 3,00,000", sanction:{ amount:"3,00,000", detail:"User approved to continue to disburse" }, ts:"2026-08-08 10:15" },
+        { num:"15", name:"GST / CPV", status:"skip", detail:"GST verified before VKYC + demos verified. Skipped -- proceed directly to disbursement.", gstCpv:{ verifiedBeforeVkyc:true } },
+        { num:"16", name:"Loan Disbursement", status:"done", detail:"Loan disbursed to account successfully", disbursement:{ status:"disbursed", amount:"3,00,000" }, ts:"2026-08-10 14:30" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-05 09:08" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-05 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-05 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-07 15:05" },
+        { event: "Risk decision: APPROVED", status: "ok", time: "2026-08-08 10:00" },
+        { event: "Sanction issued: 3,00,000", status: "ok", time: "2026-08-08 10:15" },
+        { event: "Loan disbursed: 3,00,000", status: "ok", time: "2026-08-10 14:30" },
+      ],
+    }],
+  },
+
+  // -- 2. Non-individual PAN (Partnership) -- blocked --------------------------------
+  edi_non_individual_pan: {
+    uuid: "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e", name: "Gupta & Sons Partnership",
+    phone: "91234 56789", email: "gupta.sons@gmail.com",
+    applications: [{
+      id: "app_edi_002", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Non-individual PAN -- blocked at step 4",
+      state: "REJECTED", currentStep: 4, updatedAt: "2026-08-02 10:15",
+      sourceChannel: "MERCHANT",
+      fraud: null, risk: null, creditScoreCheck: null, aa: null,
+      gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-02 10:00" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-02 10:02" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 5L-35L, Purpose: Working capital", loanRange:"5L - 35L", loanPurpose:"Working capital", ts:"2026-08-02 10:05" },
+        { num:"04", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered -- non-individual PAN blocked. Only individual PAN accepted for EDI.",
+          nonIndividualBlock:{ panType:"Partnership (Firm)", ts:"2026-08-02 10:15" } },
+        { num:"05", name:"Credit Score", status:"pending", detail:"Not reached -- blocked upstream" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"pending", detail:"Not reached" },
+        { num:"07", name:"CKYC / Aadhaar", status:"pending", detail:"Not reached" },
+        { num:"08", name:"Business Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Business Address", status:"pending", detail:"Not reached" },
+        { num:"10", name:"Udyam Registration", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "err", time: "not received -- non-individual PAN blocked" },
+      ],
+    }],
+  },
+
+  // -- 3. Credit score step -- score visible -----------------------------------------
+  edi_credit_score: {
+    uuid: "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f", name: "Priya Fashions (Priya Mehta)",
+    phone: "98001 22334", email: "priya.fashions@gmail.com",
+    applications: [{
+      id: "app_edi_003", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "Journey progressing -- currently at Credit Score",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-03 11:20",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-03 10:50" },
+      risk: null, creditScoreCheck: { score: 720, source: "Bureau pull post-PAN", ts: "2026-08-03 11:20" },
+      aa: null, gst: { status: "verified", source: "Auto-fetched at PAN", ts: "2026-08-03 11:00" },
+      udyam: null, vkyc: null, audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-03 10:40" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-03 10:42" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 50k-1L, Purpose: Inventory purchase", loanRange:"50k - 1L", loanPurpose:"Inventory purchase", ts:"2026-08-03 10:45" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. Udyam auto-fetch initiated, GST auto-fetched.", ts:"2026-08-03 10:50" },
+        { num:"05", name:"Credit Score", status:"stuck", detail:"Credit score fetched and displayed to user: 720. User is reviewing.", creditScore:720, ts:"2026-08-03 11:20" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"pending", detail:"Not reached" },
+        { num:"07", name:"CKYC / Aadhaar", status:"pending", detail:"Not reached" },
+        { num:"08", name:"Business Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Business Address", status:"pending", detail:"Not reached" },
+        { num:"10", name:"Udyam Registration", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-03 10:50" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-03 11:20" },
+        { event: "AA consent approved", status: "pending", time: "waiting on user" },
+      ],
+    }],
+  },
+
+  // -- 4. AA bank OTP failed -- stuck ------------------------------------------------
+  edi_aa_bank_linking: {
+    uuid: "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80", name: "Rajesh Kirana Store (Rajesh Yadav)",
+    phone: "97000 55667", email: "rajesh.kirana@gmail.com",
+    applications: [{
+      id: "app_edi_004", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "AA bank OTP failed -- stuck at Account Aggregator",
+      state: "PENDING", currentStep: 6, updatedAt: "2026-08-04 14:45",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-04 10:00" },
+      risk: null, creditScoreCheck: { score: 690, source: "Bureau pull post-PAN", ts: "2026-08-04 10:15" },
+      aa: { status: "partial", detail: "2/3 banks linked; PNB OTP failed", ts: "2026-08-04 14:45" },
+      gst: { status: "verified", source: "Auto-fetched at PAN", ts: "2026-08-04 10:10" },
+      udyam: null, vkyc: null, audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-04 09:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-04 09:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L, Purpose: Shop renovation", loanRange:"1L - 5L", loanPurpose:"Shop renovation", ts:"2026-08-04 09:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. GST auto-fetched.", ts:"2026-08-04 10:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score fetched: 690", creditScore:690, ts:"2026-08-04 10:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"stuck", detail:"Consent given, OTP verified on signup number. Ignoosis fetched 3 linked banks. SBI and HDFC consent approved, but PNB OTP failed.",
+          aaBanks:[{name:"SBI",status:"linked"},{name:"HDFC",status:"linked"},{name:"PNB",status:"failed"}], ts:"2026-08-04 14:45" },
+        { num:"07", name:"CKYC / Aadhaar", status:"pending", detail:"Not reached -- blocked upstream" },
+        { num:"08", name:"Business Details", status:"pending", detail:"Not reached" },
+        { num:"09", name:"Business Address", status:"pending", detail:"Not reached" },
+        { num:"10", name:"Udyam Registration", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-04 10:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-04 10:15" },
+        { event: "AA consent approved", status: "err", time: "partial -- PNB OTP failed at 2026-08-04 14:45" },
+      ],
+    }],
+  },
+
+  // -- 5. CKYC path -- at Business Details -------------------------------------------
+  edi_ckyc_path: {
+    uuid: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091", name: "Sunita Textiles (Sunita Devi)",
+    phone: "96000 77889", email: "sunita.textiles@gmail.com",
+    applications: [{
+      id: "app_edi_005", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "CKYC route completed -- currently at Business Details",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-05 13:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 10:00" },
+      risk: null, creditScoreCheck: { score: 735, source: "Bureau pull post-PAN", ts: "2026-08-05 10:15" },
+      aa: { status: "linked", detail: "2/2 banks linked via Ignoosis", ts: "2026-08-05 11:00" },
+      gst: { status: "verified", source: "Auto-fetched at PAN", ts: "2026-08-05 10:10" },
+      udyam: null, vkyc: null, audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-05 09:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-05 09:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L, Purpose: Raw material", loanRange:"1L - 5L", loanPurpose:"Raw material", ts:"2026-08-05 09:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. GST + Udyam auto-fetch initiated.", ts:"2026-08-05 10:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score fetched: 735", creditScore:735, ts:"2026-08-05 10:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"2 banks linked (SBI, BOB)", aaBanks:[{name:"SBI",status:"linked"},{name:"BOB",status:"linked"}], ts:"2026-08-05 11:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC found at PAN step. CKYC screen shown. Sarsai OTP verified on first attempt. CKYC route completed.", ts:"2026-08-05 11:30" },
+        { num:"08", name:"Business Details", status:"stuck", detail:"Registered business name, category, annual sales, income -- awaiting submission", ts:"2026-08-05 13:00" },
+        { num:"09", name:"Business Address", status:"pending", detail:"Not reached" },
+        { num:"10", name:"Udyam Registration", status:"pending", detail:"Not reached" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-05 10:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-05 10:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-05 11:00" },
+      ],
+    }],
+  },
+
+  // -- 6. Aadhaar direct path -- at Udyam -------------------------------------------
+  edi_aadhaar_path: {
+    uuid: "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f809102", name: "Ravi Auto Parts (Ravi Kumar)",
+    phone: "95000 88990", email: "ravi.autoparts@gmail.com",
+    applications: [{
+      id: "app_edi_006", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "No CKYC, Aadhaar direct -- currently at Udyam",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 15:30",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-06 10:00" },
+      risk: null, creditScoreCheck: { score: 710, source: "Bureau pull post-PAN", ts: "2026-08-06 10:15" },
+      aa: { status: "linked", detail: "1/1 bank linked via Ignoosis", ts: "2026-08-06 11:00" },
+      gst: { status: "not_verified", ts: "2026-08-06 10:10" },
+      udyam: { status: "not_verified", ts: "2026-08-06 15:30" },
+      vkyc: null, audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-06 09:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-06 09:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: <50k, Purpose: Equipment", loanRange:"< 50k", loanPurpose:"Equipment purchase", ts:"2026-08-06 09:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. No CKYC found. GST auto-fetch failed.", ts:"2026-08-06 10:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score fetched: 710", creditScore:710, ts:"2026-08-06 10:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"1 bank linked (Kotak)", aaBanks:[{name:"Kotak Mahindra",status:"linked"}], ts:"2026-08-06 11:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"No CKYC found. Aadhaar route directly. Aadhaar verification completed.", ts:"2026-08-06 11:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Business details submitted", ts:"2026-08-06 12:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Address submitted with pincode verification", ts:"2026-08-06 12:15" },
+        { num:"10", name:"Udyam Registration", status:"stuck", detail:"Udyam Registration Number entered but verification failed. Stuck at this step.", ts:"2026-08-06 15:30" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-06 10:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-06 10:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-06 11:00" },
+      ],
+    }],
+  },
+
+  // -- 7. Udyam not verified -- stuck at step 10 ------------------------------------
+  edi_udyam_block: {
+    uuid: "07a8b9c0-d1e2-4f3a-4b5c-6d7e8f901234", name: "Mahalaxmi Provisions",
+    phone: "94000 11223", email: "mahalaxmi.prov@gmail.com",
+    applications: [{
+      id: "app_edi_007", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Udyam not verified -- mandatory block at step 10",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-07 16:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-07 10:00" },
+      risk: null, creditScoreCheck: { score: 680, source: "Bureau pull post-PAN", ts: "2026-08-07 10:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-07 11:00" },
+      gst: { status: "verified", source: "Auto-fetched at PAN", ts: "2026-08-07 10:10" },
+      udyam: { status: "not_verified", ts: "2026-08-07 16:00" },
+      vkyc: null, audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-07 09:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-07 09:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 50k-1L", loanRange:"50k - 1L", ts:"2026-08-07 09:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered", ts:"2026-08-07 10:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 680", creditScore:680, ts:"2026-08-07 10:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"2 banks linked (Axis, SBI)", aaBanks:[{name:"Axis",status:"linked"},{name:"SBI",status:"linked"}], ts:"2026-08-07 11:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar route (no CKYC). Completed.", ts:"2026-08-07 11:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-07 12:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-07 12:15" },
+        { num:"10", name:"Udyam Registration", status:"stuck", detail:"Udyam Assist Number entered but verification failed. Cannot proceed without Udyam.",
+          fields:[{v:"Udyam verified: NO",bad:true}], ts:"2026-08-07 16:00" },
+        { num:"11", name:"Verify Details", status:"pending", detail:"Not reached -- blocked upstream" },
+        { num:"12", name:"VKYC", status:"pending", detail:"Not reached" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-07 10:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-07 10:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-07 11:00" },
+      ],
+    }],
+  },
+
+  // -- 8. VKYC rejected by agent ----------------------------------------------------
+  edi_vkyc_rejected: {
+    uuid: "18b9c0d1-e2f3-4a4b-5c6d-7e8f90123456", name: "Patel Hardware & Tools",
+    phone: "93000 22334", email: "patel.hardware@gmail.com",
+    applications: [{
+      id: "app_edi_008", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "VKYC rejected -- DOCUMENT_MISMATCH",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-08 11:20",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-06 09:00" },
+      risk: null, creditScoreCheck: { score: 700, source: "Bureau pull post-PAN", ts: "2026-08-06 09:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-06 10:00" },
+      gst: { status: "verified", ts: "2026-08-06 09:10" },
+      udyam: { status: "verified", ts: "2026-08-06 11:00" },
+      vkyc: { status: "REJECTED", rejectionReason: "DOCUMENT_MISMATCH", ts: "2026-08-08 11:20" },
+      audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-06 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-06 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L", loanRange:"1L - 5L", ts:"2026-08-06 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered", ts:"2026-08-06 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 700", creditScore:700, ts:"2026-08-06 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"2 banks linked", ts:"2026-08-06 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC route completed", ts:"2026-08-06 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-06 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-06 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-06 11:30" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Details verified by user", ts:"2026-08-06 12:00" },
+        { num:"12", name:"VKYC", status:"stuck", detail:"VKYC rejected by agent -- reason: DOCUMENT_MISMATCH",
+          vkycOutcome:{ status:"REJECTED", rejectionReason:"DOCUMENT_MISMATCH", ts:"2026-08-08 11:20" }, ts:"2026-08-08 11:20" },
+        { num:"13", name:"Post-VKYC Outcome", status:"pending", detail:"Not reached -- VKYC failed" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-06 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-06 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-06 10:00" },
+        { event: "VKYC decision: REJECTED", status: "ok", time: "2026-08-08 11:20" },
+      ],
+    }],
+  },
+
+  // -- 9. Risk approved, sanctioned 5L, disbursed -----------------------------------
+  edi_risk_approved_disbursed: {
+    uuid: "29c0d1e2-f3a4-4b5c-6d7e-8f9012345678", name: "Lakshmi Traders (Lakshmi Narasimhan)",
+    phone: "92000 33445", email: "lakshmi.traders@gmail.com",
+    applications: [{
+      id: "app_edi_009", type: "edi_onboarding", label: "EDI",
+      status: "active", overallLabel: "Risk approved, sanctioned 5L, GST before VKYC, loan disbursed",
+      state: "DISBURSED", currentStep: 16, updatedAt: "2026-08-11 16:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-07 09:10" },
+      risk: { status: "approved", ts: "2026-08-09 10:00" },
+      creditScoreCheck: { score: 780, source: "Bureau pull post-PAN", ts: "2026-08-07 09:15" },
+      aa: { status: "linked", detail: "4/4 banks linked", ts: "2026-08-07 10:00" },
+      gst: { status: "verified", source: "Auto-fetched at PAN step", ts: "2026-08-07 09:20" },
+      udyam: { status: "verified", ts: "2026-08-07 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-09 09:00" },
+      audit: null,
+      sanction: { amount: "5,00,000", ts: "2026-08-09 10:15" },
+      loanDisbursed: { status: "disbursed", amount: "5,00,000", ts: "2026-08-11 16:00" },
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-07 09:00" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-07 09:02" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 5L-35L", loanRange:"5L - 35L", loanPurpose:"Business expansion", ts:"2026-08-07 09:05" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. GST auto-fetched.", ts:"2026-08-07 09:10" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 780", creditScore:780, ts:"2026-08-07 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"4 banks linked", ts:"2026-08-07 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC route completed", ts:"2026-08-07 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-07 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-07 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-07 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified", ts:"2026-08-07 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved", vkycOutcome:{ status:"APPROVED", ts:"2026-08-09 09:00" }, ts:"2026-08-09 09:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"done", detail:"Case 2: All checks passed -- VKYC Verified", postVkycOutcome:{ case:"approved", ts:"2026-08-09 10:00" }, ts:"2026-08-09 10:00" },
+        { num:"14", name:"Sanction Screen", status:"done", detail:"Approved loan limit: 5,00,000", sanction:{ amount:"5,00,000" }, ts:"2026-08-09 10:15" },
+        { num:"15", name:"GST / CPV", status:"skip", detail:"GST verified before VKYC. Skipped.", gstCpv:{ verifiedBeforeVkyc:true } },
+        { num:"16", name:"Loan Disbursement", status:"done", detail:"Loan disbursed successfully", disbursement:{ status:"disbursed", amount:"5,00,000" }, ts:"2026-08-11 16:00" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-07 09:10" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-07 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-07 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-09 09:00" },
+        { event: "Risk decision: APPROVED", status: "ok", time: "2026-08-09 10:00" },
+        { event: "Sanction issued: 5,00,000", status: "ok", time: "2026-08-09 10:15" },
+        { event: "Loan disbursed: 5,00,000", status: "ok", time: "2026-08-11 16:00" },
+      ],
+    }],
+  },
+
+  // -- 10. Sanctioned 2L, GST pending (mandatory, not in CPV) -----------------------
+  edi_risk_approved_gst_pending: {
+    uuid: "3ad1e2f3-a4b5-4c6d-7e8f-901234567890", name: "Anand Sweets & Bakery",
+    phone: "91000 44556", email: "anand.sweets@gmail.com",
+    applications: [{
+      id: "app_edi_010", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Sanctioned 2L -- GST mandatory, pending (not in CPV region)",
+      state: "SANCTIONED", currentStep: 15, updatedAt: "2026-08-10 13:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-07 09:00" },
+      risk: { status: "approved", ts: "2026-08-09 10:00" },
+      creditScoreCheck: { score: 740, source: "Bureau pull post-PAN", ts: "2026-08-07 09:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-07 10:00" },
+      gst: { status: "not_verified", note: "GST not verified before VKYC. Not in CPV region -- GST is mandatory.", ts: "2026-08-10 13:00" },
+      udyam: { status: "verified", ts: "2026-08-07 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-09 09:00" },
+      audit: null,
+      sanction: { amount: "2,00,000", ts: "2026-08-09 10:15" },
+      loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-07 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-07 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L", loanRange:"1L - 5L", ts:"2026-08-07 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. GST auto-fetch failed.", ts:"2026-08-07 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 740", creditScore:740, ts:"2026-08-07 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"2 banks linked", ts:"2026-08-07 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar route", ts:"2026-08-07 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-07 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-07 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-07 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified", ts:"2026-08-07 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved", vkycOutcome:{ status:"APPROVED", ts:"2026-08-09 09:00" }, ts:"2026-08-09 09:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"done", detail:"Case 2: Risk + KYC approved", postVkycOutcome:{ case:"approved", ts:"2026-08-09 10:00" }, ts:"2026-08-09 10:00" },
+        { num:"14", name:"Sanction Screen", status:"done", detail:"Approved: 2,00,000", sanction:{ amount:"2,00,000" }, ts:"2026-08-09 10:15" },
+        { num:"15", name:"GST / CPV", status:"stuck", detail:"GST NOT verified before VKYC. User is NOT in CPV-serviceable region. GST verification is mandatory.",
+          gstCpv:{ mandatory:true, gstStatus:"Not verified" }, ts:"2026-08-10 13:00" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached -- blocked by GST" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-07 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-07 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-07 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-09 09:00" },
+        { event: "Risk decision: APPROVED", status: "ok", time: "2026-08-09 10:00" },
+        { event: "Sanction issued: 2,00,000", status: "ok", time: "2026-08-09 10:15" },
+        { event: "Loan disbursed", status: "err", time: "blocked -- GST mandatory, not verified" },
+      ],
+    }],
+  },
+
+  // -- 11. Sanctioned 1L, GST skipped via CPV, proceeding to disbursement -----------
+  edi_risk_approved_cpv_skip: {
+    uuid: "4be2f3a4-b5c6-4d7e-8f90-12345678abcd", name: "Deepak Medical Store",
+    phone: "90000 55667", email: "deepak.medical@gmail.com",
+    applications: [{
+      id: "app_edi_011", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "Sanctioned 1L -- GST skipped (CPV region), proceeding to disbursement",
+      state: "SANCTIONED", currentStep: 16, updatedAt: "2026-08-11 10:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-08 09:00" },
+      risk: { status: "approved", ts: "2026-08-10 10:00" },
+      creditScoreCheck: { score: 715, source: "Bureau pull post-PAN", ts: "2026-08-08 09:15" },
+      aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-08 10:00" },
+      gst: { status: "not_verified", note: "GST not verified, but user is in CPV-serviceable region. GST skipped via CPV.", ts: "2026-08-10 10:30" },
+      udyam: { status: "verified", ts: "2026-08-08 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-10 09:00" },
+      audit: null,
+      sanction: { amount: "1,00,000", ts: "2026-08-10 10:15" },
+      loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-08 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-08 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 50k-1L", loanRange:"50k - 1L", ts:"2026-08-08 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered", ts:"2026-08-08 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 715", creditScore:715, ts:"2026-08-08 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"1 bank linked (HDFC)", ts:"2026-08-08 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC route", ts:"2026-08-08 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-08 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-08 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-08 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified", ts:"2026-08-08 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved", vkycOutcome:{ status:"APPROVED", ts:"2026-08-10 09:00" }, ts:"2026-08-10 09:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"done", detail:"Case 2: All checks passed", postVkycOutcome:{ case:"approved", ts:"2026-08-10 10:00" }, ts:"2026-08-10 10:00" },
+        { num:"14", name:"Sanction Screen", status:"done", detail:"Approved: 1,00,000", sanction:{ amount:"1,00,000" }, ts:"2026-08-10 10:15" },
+        { num:"15", name:"GST / CPV", status:"done", detail:"GST not verified, but user IS in CPV-serviceable region. GST skipped via CPV. Proceeding to disbursement.",
+          gstCpv:{ skipped:true }, ts:"2026-08-10 10:30" },
+        { num:"16", name:"Loan Disbursement", status:"stuck", detail:"Disbursement in progress -- awaiting final confirmation", ts:"2026-08-11 10:00" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-08 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-08 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-08 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-10 09:00" },
+        { event: "Risk decision: APPROVED", status: "ok", time: "2026-08-10 10:00" },
+        { event: "Sanction issued: 1,00,000", status: "ok", time: "2026-08-10 10:15" },
+        { event: "Loan disbursed", status: "pending", time: "in progress" },
+      ],
+    }],
+  },
+
+  // -- 12. Risk rejected -- waitlisted (score 580) ----------------------------------
+  edi_risk_rejected_waitlist: {
+    uuid: "5cf3a4b5-c6d7-4e8f-9012-3456789abcde", name: "Naveen General Store (Naveen Singh)",
+    phone: "89000 66778", email: "naveen.general@gmail.com",
+    applications: [{
+      id: "app_edi_012", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Risk rejected + VKYC verified -- waitlisted (score 580)",
+      state: "WAITLISTED", currentStep: 16, updatedAt: "2026-08-09 14:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-06 09:00" },
+      risk: { status: "rejected", reason: "Low credit score + insufficient banking history", ts: "2026-08-09 10:00" },
+      creditScoreCheck: { score: 580, source: "Bureau pull post-PAN", ts: "2026-08-06 09:15" },
+      aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-06 10:00" },
+      gst: { status: "verified", ts: "2026-08-06 09:10" },
+      udyam: { status: "verified", ts: "2026-08-06 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-08 09:00" },
+      audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-06 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-06 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L", loanRange:"1L - 5L", ts:"2026-08-06 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered", ts:"2026-08-06 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 580 (low)", creditScore:580, ts:"2026-08-06 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"1 bank linked", ts:"2026-08-06 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar route", ts:"2026-08-06 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-06 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-06 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-06 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified", ts:"2026-08-06 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved", vkycOutcome:{ status:"APPROVED", ts:"2026-08-08 09:00" }, ts:"2026-08-08 09:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"stuck", detail:"Case 3: Risk REJECTED + VKYC verified. User moved to waitlist.",
+          postVkycOutcome:{ case:"waitlisted", score:580, ts:"2026-08-09 10:00" }, ts:"2026-08-09 10:00" },
+        { num:"14", name:"Sanction Screen", status:"skip", detail:"Not applicable -- risk rejected" },
+        { num:"15", name:"GST / CPV", status:"skip", detail:"Not applicable -- risk rejected" },
+        { num:"16", name:"Loan Disbursement", status:"stuck", detail:"Waitlisted -- loan not disbursed. User sees waitlist screen with score and actionable items.",
+          disbursement:{ status:"waitlisted", score:580, actionItems:["Improve credit score above 650","Maintain minimum balance in primary bank account","Complete 6 months of consistent business transactions","Link additional bank accounts via Account Aggregator"] },
+          ts:"2026-08-09 14:00" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-06 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-06 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-06 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-08 09:00" },
+        { event: "Risk decision: REJECTED", status: "ok", time: "2026-08-09 10:00" },
+        { event: "Sanction issued", status: "err", time: "not issued -- risk rejected" },
+        { event: "Loan disbursed", status: "err", time: "not disbursed -- waitlisted" },
+      ],
+    }],
+  },
+
+  // -- 13. Audit declined -- CONCURRENT_AUDIT_REVIEW_DECLINED -----------------------
+  edi_audit_declined: {
+    uuid: "6da4b5c6-d7e8-4f90-1234-56789abcdef0", name: "Krishna Electricals (Krishna Murthy)",
+    phone: "88000 77889", email: "krishna.electricals@gmail.com",
+    applications: [{
+      id: "app_edi_013", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Declined post-audit -- CONCURRENT_AUDIT_REVIEW_DECLINED",
+      state: "REJECTED", currentStep: 13, updatedAt: "2026-08-10 17:15",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "audit_declined", reason: "CONCURRENT_AUDIT_REVIEW_DECLINED (slice_x_redflags)", ts: "2026-08-10 17:15" },
+      risk: null, creditScoreCheck: { score: 730, source: "Bureau pull post-PAN", ts: "2026-08-07 09:15" },
+      aa: { status: "linked", detail: "3/3 banks linked", ts: "2026-08-07 10:00" },
+      gst: { status: "verified", ts: "2026-08-07 09:20" },
+      udyam: { status: "verified", ts: "2026-08-07 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-09 12:00" },
+      audit: { status: "declined", reason: "CONCURRENT_AUDIT_REVIEW_DECLINED", ts: "2026-08-10 17:15" },
+      sanction: null, loanDisbursed: null,
+      redflagCount: 1,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-07 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-07 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L", loanRange:"1L - 5L", ts:"2026-08-07 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered", ts:"2026-08-07 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 730", creditScore:730, ts:"2026-08-07 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"3 banks linked", ts:"2026-08-07 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC route completed", ts:"2026-08-07 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-07 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-07 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-07 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified", ts:"2026-08-07 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved", vkycOutcome:{ status:"APPROVED", ts:"2026-08-09 12:00" }, ts:"2026-08-09 12:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"stuck", detail:"Post-VKYC audit review. Routed to audit, then DECLINED.",
+          auditOutcome:{ outcome:"declined", note:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:"2026-08-10 17:15" },
+          postVkycOutcome:{ case:"rejected", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED (post-audit)", ts:"2026-08-10 17:15" },
+          ts:"2026-08-10 17:15" },
+        { num:"14", name:"Sanction Screen", status:"pending", detail:"Not reached -- declined" },
+        { num:"15", name:"GST / CPV", status:"pending", detail:"Not reached" },
+        { num:"16", name:"Loan Disbursement", status:"pending", detail:"Not reached" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-07 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-07 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-07 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-09 12:00" },
+        { event: "Risk decision", status: "err", time: "not reached -- audit declined first" },
+        { event: "Sanction issued", status: "err", time: "not issued -- audit declined" },
+        { event: "Loan disbursed", status: "err", time: "not disbursed" },
+      ],
+    }],
+  },
+
+  // -- 14. DCA application -- out of scope, not EDI ---------------------------------
+  edi_dca_out_of_scope: {
+    uuid: "7eb5c6d7-e8f9-4012-3456-789abcdef012", name: "[Test] DCA-flagged application (no ONBOARDING_PLATFORM_SYNC)",
+    phone: "80000 88990", email: "test.dca.outofscope@slice.in",
+    applications: [{
+      id: "app_dca_oos_001", type: "dca_onboarding", label: "DCA (out of scope)",
+      status: "active", overallLabel: "DCA application -- not EDI",
+      updatedAt: "2026-08-05 09:00",
+    }],
+  },
+
+};
+
+// ops_dashboard (EDI) -- state, render logic, and event wiring
+
+// -- state --
+let currentUser = null;
+let selectedAppIdx = 0;
+
+// In-scope application type for this dashboard: EDI (merchant_lending) only.
+// DCA applications (dca_onboarding, or any type without ONBOARDING_PLATFORM_SYNC /
+// updated_by = 'onboarding-svc') are out of scope -- they must never render through
+// the EDI milestone map.
+const IN_SCOPE_TYPES = new Set(["edi_onboarding"]);
+
+// -- helpers --
+function journeyTypeLabel(type) {
+  if (type === "edi_onboarding") return "EDI";
+  if (type === "dca_onboarding") return "DCA (out of scope)";
+  return (type || "—").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+function copyVal(txt, e) {
+  if (e) e.stopPropagation();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt);
+  const t = document.getElementById("copyToast");
+  if (t) { t.textContent = "Copied  " + txt; t.classList.add("show"); clearTimeout(window._ct); window._ct = setTimeout(() => t.classList.remove("show"), 1400); }
+}
+function nowStamp() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+function refreshView() { if (currentUser) renderApp(currentUser, currentUser.applications[selectedAppIdx]); }
+function toggleEventLog() { const d = document.getElementById("eventLog"); if (d) d.style.display = d.style.display === "none" ? "block" : "none"; }
+
+function statusTag(s) {
+  const map = {
+    stuck:     ["tag-stuck",     "⚠ Stuck"],
+    active:    ["tag-active",    "✓ Active"],
+    review:    ["tag-review",    "↻ In Review"],
+    pending:   ["tag-pending",   "⏳ Pending"],
+    blocked:   ["tag-blocked",   "✗ Blocked"],
+    abandoned: ["tag-abandoned", "○ Abandoned"],
+  };
+  return map[s] || ["tag-neutral", s];
+}
+
+// -- Alerts: DERIVED from the fetched per-application fields --
+function deriveAlerts(u, app) {
+  if (!IN_SCOPE_TYPES.has(app.type)) return [];
+  const A = [];
+  const add = (level, title, body) => A.push({ level, title, body });
+  const f = app.fraud, g = app.gst, ud = app.udyam, v = app.vkyc, aud = app.audit;
+  const r = app.risk, cs = app.creditScoreCheck, aa = app.aa;
+
+  // -- P0 --
+  if (f && f.status === "hard_block") add("p0", "Fraud hard block / blacklisted", f.reason || "USER_BLACKLISTED. Owner: Fraud squad.");
+  if (v && v.status === "REJECTED") add("p0", "VKYC rejected", "Rejection reason: " + (v.rejectionReason || "not specified") + ".");
+  if (r && r.status === "rejected") add("p0", "Risk rejected -- waitlisted", (r.reason || "Risk decision rejected") + ". User is on waitlist.");
+  if (f && f.status === "audit_declined") add("p0", "Declined post-audit", (f.reason || "CONCURRENT_AUDIT_REVIEW_DECLINED") + ". Owner: Review/Audit team.");
+
+  // -- P1 --
+  if (f && f.status === "dedupe_conflict") add("p1", "Dedupe conflict -- existing account", (f.reason || "") + " Owner: UID team.");
+  if (g && g.status === "not_verified" && app.state === "SANCTIONED") add("p1", "GST not verified -- may be gating", (g.note || "GST not verified. May block disbursement depending on CPV region."));
+  if (v && v.status === "PENDING") add("p1", "VKYC pending", "No update since " + (v.ts || "scheduling") + ".");
+  if (aud && aud.status === "under_review") add("p1", "In audit review", "Since " + (aud.ts || "unknown") + ".");
+  if (aa && aa.status === "partial") add("p1", "AA bank linking failed", (aa.detail || "Some banks failed OTP during Account Aggregator step."));
+
+  // -- Info --
+  if (app.state === "WAITLISTED") add("info", "Waitlisted with actionable items", "User sees waitlist screen with score and improvement steps.");
+
+  const rank = { p0: 0, p1: 1, info: 2 };
+  return A.sort((a, b) => rank[a.level] - rank[b.level]);
+}
+
+function renderApp(u, app) {
+  const [tagCls, tagLabel] = statusTag(app.status);
+  const alerts = deriveAlerts(u, app);
+  const alertsHtml = alerts.length
+    ? alerts.map(a => `
+      <div class="alert alert-${a.level}">
+        <span class="alert-label">${a.level.toUpperCase()}</span>
+        <strong>${a.title}</strong><br>${a.body}
+      </div>`).join("")
+    : '<div class="alert alert-info"><strong>No active alerts</strong> -- journey looks healthy.</div>';
+
+  const stepsHtml = (app.steps || []).map((step, i) => renderStep(step, i === app.steps.length - 1, i, app.updatedAt)).join("");
+  const whHtml = (app.webhooks || []).length
+    ? app.webhooks.map(renderEventRow).join("")
+    : '<div style="padding:12px 0;font-size:13px;color:var(--muted);">No events tracked for this application.</div>';
+
+  const initials = u.name.replace(/[^A-Za-z ]/g,"").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase() || "U";
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sp-header">
+      <div class="sp-avatar">${initials}</div>
+      <div class="sp-head-main">
+        <div class="sp-name-row">
+          <span class="sp-name">${u.name}</span>
+          <span class="sp-uuid" onclick="copyVal('${u.uuid}',event)" title="Copy UUID">${u.uuid} ⧉</span>
+        </div>
+        <div class="sp-contact">
+          <span>\u{1F4DE} ${u.phone} <span class="tick">✔</span></span>
+          <span>✉️ ${u.email} <span class="tick">✔</span></span>
+        </div>
+      </div>
+      <div class="sp-headstatus">
+        <span class="tag ${tagCls}" style="font-size:12px;padding:5px 12px;">${tagLabel}</span>
+        ${app.overallLabel ? '<span class="sp-overall">' + app.overallLabel + '</span>' : ""}
+        <span class="sp-asof">as of ${nowStamp()} · <span class="sp-refresh" onclick="refreshView()">⟳ Refresh</span></span>
+      </div>
+    </div>
+
+    <div class="sp-body">
+      <div class="sp-left">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Alerts</span>
+            ${alerts.length
+              ? '<span class="tag tag-stuck">' + alerts.length + ' active</span>'
+              : '<span class="tag tag-active">CLEAR</span>'}
+          </div>
+          <div class="card-body" style="padding:14px 18px;">${alertsHtml}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Checks</span></div>
+          ${renderFraudCheck(app.fraud)}
+          ${renderRiskCheck(app.risk)}
+          ${renderCreditScoreCheck(app.creditScoreCheck)}
+          ${renderAACheck(app.aa)}
+          ${renderGstCheck(app.gst)}
+          ${renderUdyamCheck(app.udyam)}
+          ${renderVkycCheck(app.vkyc)}
+          ${renderAuditCheck(app.audit)}
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Event delivery</span></div>
+          <div class="card-caveat">Key EDI handoff events. "Received" means the event/flag was present in this snapshot.</div>
+          <div class="card-body" style="padding:4px 18px;">${whHtml}</div>
+        </div>
+      </div>
+
+      <div class="sp-right">
+        <div class="sp-section-title">EDI journey <span class="meta">Milestone ${app.currentStep} of ${app.steps.length}</span></div>
+
+        <div class="sp-appmeta">
+          <span class="sp-typebadge">${journeyTypeLabel(app.type)}</span>
+          <span class="sp-metacell">App ID <b onclick="copyVal('${app.id}',event)" title="Copy application ID">${app.id} ⧉</b></span>
+          ${app.updatedAt ? '<span class="sp-metacell">Updated <b>' + app.updatedAt + '</b></span>' : ""}
+          ${app.sourceChannel ? '<span class="sp-metacell">Source channel <b>' + app.sourceChannel + '</b></span>' : ""}
+          ${app.sanction ? '<span class="sp-metacell">Sanction <b>' + app.sanction.amount + '</b></span>' : ""}
+        </div>
+
+        <div class="tl-card">
+          <div class="tl-list">${stepsHtml}</div>
+        </div>
+
+        <div class="sp-eventlog-wrap">
+          <button class="sp-eventlog-btn" onclick="toggleEventLog()">Full event log ▾ <span class="sp-muted">(availability note)</span></button>
+          <div id="eventLog" class="sp-eventlog" style="display:none;">
+            <div class="el-row"><span class="el-action" style="color:var(--muted);font-style:italic;">EDI event log tracks key handoffs: PAN verified, credit score fetched, AA consent, VKYC decision, risk decision, sanction issued, loan disbursed. A full raw action history may not be available from all sources.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUser(u) {
+  const inScope = u.applications.map((a, i) => IN_SCOPE_TYPES.has(a.type) ? i : -1).filter(i => i >= 0);
+  if (inScope.length === 0) { renderNoInScope(u); return; }
+  if (!inScope.includes(selectedAppIdx)) selectedAppIdx = inScope[0];
+  renderApp(u, u.applications[selectedAppIdx]);
+}
+
+// Explicit state when a user has no EDI application. Distinguishes DCA apps.
+function renderNoInScope(u) {
+  const initials = u.name.replace(/[^A-Za-z ]/g, "").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase() || "U";
+  const hasDCA = u.applications.some(a => a.type === "dca_onboarding");
+  const kinds = [...new Set(u.applications.map(a => journeyTypeLabel(a.type)))].join(", ") || "none";
+  document.getElementById("mainContent").innerHTML = `
+    <div class="sp-header">
+      <div class="sp-avatar">${initials}</div>
+      <div class="sp-head-main">
+        <div class="sp-name-row"><span class="sp-name">${u.name}</span><span class="sp-uuid" onclick="copyVal('${u.uuid}',event)">${u.uuid} ⧉</span></div>
+        <div class="sp-contact"><span>\u{1F4DE} ${u.phone}</span><span>✉️ ${u.email}</span></div>
+      </div>
+    </div>
+    <div class="sp-body" style="display:block;">
+      <div class="sp-noscope">
+        <div class="sp-noscope-icon">◌</div>
+        ${hasDCA
+          ? '<h3>This application is DCA, not EDI</h3><p>This dashboard covers <strong>EDI</strong> (merchant lending / business loan onboarding) only. This uuid\'s application is a DCA (direct current-account) journey.</p><span class="sp-dca-note">See the DCA on-call tool for this application.</span>'
+          : '<h3>No EDI onboarding application</h3><p>This dashboard covers <strong>EDI</strong> (merchant lending / business loan onboarding) only.</p><p class="sp-muted">Applications on record (out of scope): ' + kinds + '</p>'}
+      </div>
+    </div>`;
+}
+
+function switchApp(idx) {
+  selectedAppIdx = idx;
+  renderApp(currentUser, currentUser.applications[idx]);
+}
+
+function closeTestPanel() {
+  document.getElementById("testPanel").classList.remove("open");
+  document.getElementById("testPanelBtn").classList.remove("on");
+}
+function toggleTestPanel() {
+  const p = document.getElementById("testPanel");
+  p.classList.toggle("open");
+  document.getElementById("testPanelBtn").classList.toggle("on", p.classList.contains("open"));
+}
+
+function loadTest(key) {
+  document.querySelectorAll(".tc-row").forEach(r => r.classList.remove("tc-active"));
+  const clicked = document.querySelector('.tc-row[data-uuid="' + key + '"]');
+  if (clicked) clicked.classList.add("tc-active");
+  const match = USERS[key];
+  if (match) { currentUser = match; selectedAppIdx = 0; renderUser(match); }
+}
+
+function doSearch() {
+  document.querySelectorAll(".tc-row").forEach(r => r.classList.remove("tc-active"));
+  const val = document.getElementById("searchInput").value.trim();
+  const match = Object.values(USERS).find(u =>
+    u.uuid === val || u.phone.replace(/\s/g,"") === val || Object.keys(USERS).find(k => USERS[k] === u) === val
+  );
+  if (match) {
+    currentUser = match;
+    selectedAppIdx = 0;
+    renderUser(match);
+  } else {
+    document.getElementById("mainContent").innerHTML = `
+      <div style="grid-column:1/-1;">
+        <div class="empty">
+          <div class="empty-icon">\u{1F6AB}</div>
+          <h3>Merchant not found</h3>
+          <p>No merchant found for "<strong>${val}</strong>". Try a UUID or 10-digit phone number, or open <strong>QA · Test cases</strong>.</p>
+        </div>
+      </div>`;
+  }
+}
+
+document.getElementById("searchInput").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+</script>
+</body>
+</html>

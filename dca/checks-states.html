@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checks card — states per row (DCA) · Spacce CX</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #F1F1F6; }
+  .spec-top .sp-qa-btn { text-decoration: none; }
+  .spec-top .nav { display: flex; gap: 10px; align-items: center; }
+  .spec-cell .card { margin: 0; box-shadow: 0 2px 10px rgba(30,30,60,.07); }
+  .spec-section-title .ms-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="spec-top">
+    <div><h2>Checks card — states per row (DCA)</h2><span class="sub">Visual reference for PRD_ops_dashboard_dca.md §7.3 · one section per check, a cell per outcome · rendered by render.js</span></div>
+    <div class="nav">
+      <details class="devnav">
+        <summary class="sp-qa-btn">Dev references ▾</summary>
+        <div class="devnav-menu">
+          <a href="journey-states.html">Journey states</a>
+          <a href="alerts-states.html">Alerts card states</a>
+          <a href="checks-states.html" class="active">Checks states</a>
+          <a href="event-delivery-states.html">Event delivery states</a>
+        </div>
+      </details>
+      <a href="index.html" class="sp-qa-btn">← Back to dashboard</a>
+    </div>
+  </div>
+  <div class="spec-wrap" id="body"></div>
+
+<script src="render.js"></script>
+<script>
+// Checks-states gallery — every row × outcome from PRD §7.3, rendered by the real DCA
+// check renderers. Rows: Fraud/redflag · GST · Udyam · VKYC · Audit review. Deliberately
+// NOT included (no confirmed DCA source, PRD Q-DCA-6): AML, Bureau stop, Risk decisioning,
+// SIM binding — see the "rows deliberately not included" note reproduced below.
+function _ccell(caption, rowsHtml) {
+  return `<div class="spec-cell">
+    <div class="spec-caption">${caption}</div>
+    <div class="card"><div class="card-header"><span class="card-title">Checks</span></div>${rowsHtml}</div>
+  </div>`;
+}
+const _t = (chip, txt) => `<span class="tagref">${chip}</span>${txt}`;
+const T = "2026-07-28 09:20";
+
+function build() {
+  const rep = _ccell(_t("full card", "<b>Representative Checks card</b> — all rows populated with latest values."),
+    renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T }) +
+    renderGstCheck({ status:"verified", source:"bureau_id_gstin_advanced_details (product_flow=2)", ts:T }) +
+    renderUdyamCheck({ status:"verified", ts:T }) +
+    renderVkycCheck({ status:"APPROVED", ts:"2026-07-30 15:05" }) +
+    renderAuditCheck(null));
+
+  const fraud = [
+    _ccell(_t("Fraud/redflag", "<b>Clear</b> — no redflag rows."), renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Hard block</b> — USER_BLACKLISTED, terminal."), renderFraudCheck({ status:"hard_block", reason:"USER_BLACKLISTED (validated=true)", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Dedupe conflict</b> — PAN / existing-bank-user / cross-product."), renderFraudCheck({ status:"dedupe_conflict", reason:"PAN_DEDUPE_EXISTS_WITH_DIFFERENT_UUID", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Audit declined</b> — CONCURRENT_AUDIT_REVIEW_DECLINED."), renderFraudCheck({ status:"audit_declined", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Flagged (other)</b> — a redflag row that doesn't match a named bucket."), renderFraudCheck({ status:"flagged", reason:"Unclassified redflag row", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>N/A</b> — no redflag data (never assume clear)."), renderFraudCheck(null)),
+  ];
+
+  const gst = [
+    _ccell(_t("GST", "<b>Verified</b> — non-empty-hash gst_number OR a bureau_id_gstin_advanced_details row."), renderGstCheck({ status:"verified", source:"business_details.gst_number", ts:T })),
+    _ccell(_t("GST", "<b>Not verified</b> — non-gating today (§0.4). Informational, not a block."), renderGstCheck({ status:"not_verified", ts:T })),
+    _ccell(_t("GST", "<b>N/A</b> — no GST data fetched."), renderGstCheck(null)),
+  ];
+
+  const udyam = [
+    _ccell(_t("Udyam", "<b>Verified</b> — non-empty-hash udyam_aadhaar_number."), renderUdyamCheck({ status:"verified", ts:T })),
+    _ccell(_t("Udyam", "<b>Not verified — mandatory block</b>. No auto-fetch confirmation signal exists for DCA."), renderUdyamCheck({ status:"not_verified", ts:T })),
+    _ccell(_t("Udyam", "<b>N/A</b> — no Udyam data fetched."), renderUdyamCheck(null)),
+  ];
+
+  const vkyc = [
+    _ccell(_t("VKYC", "<b>Approved</b> — vkyc_details, product_flow=15."), renderVkycCheck({ status:"APPROVED", ts:"2026-07-30 15:05" })),
+    _ccell(_t("VKYC", "<b>Rejected</b> — reason from vkyc_details.rejection_reason."), renderVkycCheck({ status:"REJECTED", rejectionReason:"FACE_MISMATCH", ts:"2026-07-26 11:20" })),
+    _ccell(_t("VKYC", "<b>Pending</b> — no update since scheduling."), renderVkycCheck({ status:"PENDING", ts:"2026-07-27 13:00" })),
+    _ccell(_t("VKYC", "<b>Not reached</b> — no vkyc_details row yet."), renderVkycCheck(null)),
+  ];
+
+  const audit = [
+    _ccell(_t("Audit review", "<b>Not triggered</b> — default, never routed to audit."), renderAuditCheck(null)),
+    _ccell(_t("Audit review", "<b>Under review</b> — MOVED_TO_AUDIT present, no terminal decision yet. Time is an updated_at proxy, not a true entry timestamp."), renderAuditCheck({ status:"under_review", ts:"2026-07-29 08:00" })),
+    _ccell(_t("Audit review", "<b>Approved (post-audit)</b>."), renderAuditCheck({ status:"approved", ts:"2026-07-29 17:15" })),
+    _ccell(_t("Audit review", "<b>Declined</b> — CONCURRENT_AUDIT_REVIEW_DECLINED."), renderAuditCheck({ status:"declined", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:"2026-07-29 17:15" })),
+  ];
+
+  const sec = (title, sub, cells) =>
+    `<div class="spec-section-title">${title}<span class="ms-sub">${sub}</span></div><div class="spec-grid">${cells.join("")}</div>`;
+
+  document.getElementById("body").innerHTML =
+    sec("Representative", "all rows together, as on the live dashboard", [rep]) +
+    sec("Fraud / redflag", "Clear · Hard block · Dedupe conflict · Audit declined · Flagged (other) · N/A", fraud) +
+    sec("GST verification", "Verified · Not verified (non-gating) · N/A", gst) +
+    sec("Udyam verification", "Verified · Not verified (mandatory block) · N/A", udyam) +
+    sec("VKYC", "Approved · Rejected · Pending · Not reached", vkyc) +
+    sec("Audit review", "Not triggered · Under review · Approved · Declined", audit) +
+    `<div class="spec-section-title">Rows deliberately NOT included<span class="ms-sub">no confirmed DCA source — PRD §7.3, Q-DCA-6</span></div>` +
+    `<div class="spec-cell" style="max-width:640px;"><div class="spec-caption">AML · Bureau stop · Risk decisioning · SIM binding all exist on the DSA+CC/CC-only tool's Checks card. No DCA-specific (or shared per-user) source was confirmed for any of these, so they are omitted here rather than built against an assumed source. See PRD Open Questions Q-DCA-6.</div></div>`;
+}
+build();
+</script>
+</body>
+</html>
