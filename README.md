@@ -29,7 +29,7 @@ python3 -m http.server 8744 --directory edi
 ## Features
 
 - **Real-time lookup**: Enter a merchant UUID or phone number to load their journey state
-- **QA test panel**: 14 built-in test cases per dashboard covering happy paths, edge cases, and error states
+- **QA test panel**: 77 (DCA) / 42 (EDI) built-in test cases covering happy paths, login/fraud blocks, VKYC agent actions, review queues, dedupe, journey resets, and error states
 - **Alerts engine**: Auto-derived P0/P1/info alerts based on application state
 - **Checks card**: System check status (Fraud, VKYC, Audit, GST, Udyam, etc.)
 - **Event delivery tracker**: Notification/communication delivery status

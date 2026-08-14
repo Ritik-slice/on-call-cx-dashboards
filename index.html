@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On-Call CX Dashboards — DCA &amp; EDI</title>
+<style>
+  :root { --accent:#6D28D9; --bg:#F7F6FB; --card:#FFFFFF; --border:#E5E1F2; --text:#1F1A33; --muted:#6B6480; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:20px; margin-bottom: 8px; }
+  .dot { width:10px; height:10px; border-radius:50%; background: var(--accent); display:inline-block; }
+  h1 { font-size: 28px; margin: 4px 0 8px; }
+  p.lead { color: var(--muted); font-size: 15px; max-width: 620px; line-height:1.5; }
+  .cards { display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 36px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-decoration:none; color: inherit; transition: box-shadow .15s, transform .15s; display:block; }
+  .card:hover { box-shadow: 0 8px 24px rgba(109,40,217,0.12); transform: translateY(-2px); }
+  .card h2 { font-size: 18px; margin: 0 0 8px; color: var(--accent); }
+  .card p { font-size: 13.5px; color: var(--muted); line-height:1.5; margin: 0 0 14px; }
+  .flow { font-size: 12px; color: var(--text); background: var(--bg); border-radius: 8px; padding: 10px 12px; line-height: 1.6; }
+  .cta { margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--accent); }
+  .footer { margin-top: 48px; font-size: 12px; color: var(--muted); }
+  .footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="dot"></span>Spacce CX</div>
+  <h1>On-Call CX Dashboards</h1>
+  <p class="lead">Internal on-call tooling for merchant onboarding support — inspect a merchant's journey state, alerts, and system checks without needing direct data warehouse access.</p>
+
+  <div class="cards">
+    <a class="card" href="dca/index.html">
+      <h2>DCA — Direct Current Account</h2>
+      <p>13-milestone merchant onboarding journey for current account applications.</p>
+      <div class="flow">TnC → PAN → Business Details → Business Address → CKYC/Aadhaar → Udyam → GST → Verify Details → Fraud Check → VKYC → Post-VKYC Checks → Decision → CA Creation</div>
+      <div class="cta">Open DCA dashboard →</div>
+    </a>
+    <a class="card" href="edi/index.html">
+      <h2>EDI — Merchant Lending</h2>
+      <p>16-milestone merchant lending / business loan onboarding journey.</p>
+      <div class="flow">TnC → Permissions → Loan Requirement → PAN → Credit Score → Account Aggregator → CKYC/Aadhaar → Business Details → Business Address → Udyam → Verify Details → VKYC → Post-VKYC Outcome → Sanction → GST/CPV → Disbursement</div>
+      <div class="cta">Open EDI dashboard →</div>
+    </a>
+  </div>
+
+  <div class="footer">Static HTML/JS/CSS, no build step. Source on <a href="https://github.com/Ritik-slice/on-call-cx-dashboards">GitHub</a>.</div>
+</div>
+</body>
+</html>
