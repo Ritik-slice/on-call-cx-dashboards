@@ -68,6 +68,67 @@
         <div class="tc-row" onclick="loadTest('edi_audit_declined')" data-uuid="edi_audit_declined"><span class="tc-num">13</span>Audit declined — CONCURRENT_AUDIT_REVIEW_DECLINED</div>
         <div class="tc-row" onclick="loadTest('edi_dca_out_of_scope')" data-uuid="edi_dca_out_of_scope"><span class="tc-num">14</span>DCA application — out of scope, not EDI</div>
       </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Login failures (SIM / fraud)</div>
+        <div class="tc-row" onclick="loadTest('edi_sim_timeout')" data-uuid="edi_sim_timeout"><span class="tc-num">15</span>SIM binding — ETIMEDOUT</div>
+        <div class="tc-row" onclick="loadTest('edi_integrity_breach')" data-uuid="edi_integrity_breach"><span class="tc-num">16</span>INTEGRITY_BREACH</div>
+        <div class="tc-row" onclick="loadTest('edi_blacklisted_login')" data-uuid="edi_blacklisted_login"><span class="tc-num">17</span>USER_BLACKLISTED at login</div>
+        <div class="tc-row" onclick="loadTest('edi_redflag_login')" data-uuid="edi_redflag_login"><span class="tc-num">18</span>RED_FLAG DEVICE_FRAUD</div>
+        <div class="tc-row" onclick="loadTest('edi_sim_device_change')" data-uuid="edi_sim_device_change"><span class="tc-num">19</span>DEVICEID_MISS_MATCH</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">PAN verification</div>
+        <div class="tc-row" onclick="loadTest('edi_dedupe_pan')" data-uuid="edi_dedupe_pan"><span class="tc-num">20</span>Dedupe block — duplicate PAN</div>
+        <div class="tc-row" onclick="loadTest('edi_nsdl_name_mismatch')" data-uuid="edi_nsdl_name_mismatch"><span class="tc-num">21</span>NSDL name mismatch</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">CKYC / Aadhaar edge cases</div>
+        <div class="tc-row" onclick="loadTest('edi_ckyc_otp_fail')" data-uuid="edi_ckyc_otp_fail"><span class="tc-num">22</span>CKYC OTP not received</div>
+        <div class="tc-row" onclick="loadTest('edi_aadhaar_vendor_down')" data-uuid="edi_aadhaar_vendor_down"><span class="tc-num">23</span>Aadhaar vendor down 503</div>
+        <div class="tc-row" onclick="loadTest('edi_ckyc_fallback')" data-uuid="edi_ckyc_fallback"><span class="tc-num">24</span>CKYC invalid → Aadhaar fallback</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Fraud blocks</div>
+        <div class="tc-row" onclick="loadTest('edi_fraud_soft_vd')" data-uuid="edi_fraud_soft_vd"><span class="tc-num">25</span>Soft block at Verify Details</div>
+        <div class="tc-row" onclick="loadTest('edi_fraud_hard_vd')" data-uuid="edi_fraud_hard_vd"><span class="tc-num">26</span>Hard block at Verify Details</div>
+        <div class="tc-row" onclick="loadTest('edi_post_vkyc_fraud_hard')" data-uuid="edi_post_vkyc_fraud_hard"><span class="tc-num">27</span>Post-VKYC hard block — WATCHLIST_HIT</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">VKYC agent actions</div>
+        <div class="tc-row" onclick="loadTest('edi_vkyc_end_call')" data-uuid="edi_vkyc_end_call"><span class="tc-num">28</span>End call — POOR_CONNECTIVITY</div>
+        <div class="tc-row" onclick="loadTest('edi_vkyc_soft_reject')" data-uuid="edi_vkyc_soft_reject"><span class="tc-num">29</span>Soft reject — DOCUMENT_BLUR</div>
+        <div class="tc-row" onclick="loadTest('edi_vkyc_hard_fraud')" data-uuid="edi_vkyc_hard_fraud"><span class="tc-num">30</span>Hard reject — SUSPECTED_FRAUD</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Review queues</div>
+        <div class="tc-row" onclick="loadTest('edi_fia_stuck')" data-uuid="edi_fia_stuck"><span class="tc-num">31</span>FIA review — stuck 16 days</div>
+        <div class="tc-row" onclick="loadTest('edi_manual_review_rejected')" data-uuid="edi_manual_review_rejected"><span class="tc-num">32</span>Manual review rejected — KYC Ops</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Post-review pipeline</div>
+        <div class="tc-row" onclick="loadTest('edi_dedupe_pipeline')" data-uuid="edi_dedupe_pipeline"><span class="tc-num">33</span>Dedupe blocked DUPLICATE_RECORD</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Journey reset</div>
+        <div class="tc-row" onclick="loadTest('edi_reset_wrong_pan')" data-uuid="edi_reset_wrong_pan"><span class="tc-num">34</span>Wrong PAN — ops reset Step 4</div>
+        <div class="tc-row" onclick="loadTest('edi_reset_vkyc_audit')" data-uuid="edi_reset_vkyc_audit"><span class="tc-num">35</span>VKYC audit-rejected — auto-reset</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — states</div>
+        <div class="tc-row" onclick="loadTest('edi_abandoned')" data-uuid="edi_abandoned"><span class="tc-num">36</span>Abandoned idle 65 days</div>
+        <div class="tc-row" onclick="loadTest('edi_aml_pending')" data-uuid="edi_aml_pending"><span class="tc-num">37</span>AML pending</div>
+        <div class="tc-row" onclick="loadTest('edi_aml_match')" data-uuid="edi_aml_match"><span class="tc-num">38</span>AML possible match</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — dedupe</div>
+        <div class="tc-row" onclick="loadTest('edi_dedupe_clear')" data-uuid="edi_dedupe_clear"><span class="tc-num">39</span>Dedupe clear at all checkpoints</div>
+        <div class="tc-row" onclick="loadTest('edi_dedupe_many')" data-uuid="edi_dedupe_many"><span class="tc-num">40</span>Dedupe many candidates</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — features</div>
+        <div class="tc-row" onclick="loadTest('edi_uid_pending')" data-uuid="edi_uid_pending"><span class="tc-num">41</span>Disbursement blocked — account link pending</div>
+        <div class="tc-row" onclick="loadTest('edi_systemic_nsdl')" data-uuid="edi_systemic_nsdl"><span class="tc-num">42</span>Systemic NSDL 5xx spike</div>
+      </div>
     </div>
   </div>
 </div>
@@ -700,6 +761,573 @@ const USERS = {
     }],
   },
 
+  // -- 15. SIM binding ETIMEDOUT -----------------------------------------------------
+  edi_sim_timeout: {
+    uuid: "8fc6d7e8-f901-4234-5678-9abcdef01234", name: "Manoj Timber Traders (Manoj Pillai)",
+    phone: "87000 11223", email: "manoj.timber@gmail.com",
+    applications: [{
+      id: "app_edi_015", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "SIM binding failed -- ETIMEDOUT at login",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:10",
+      sourceChannel: "MERCHANT",
+      simBinding: { status: "failed", hard: false, reason: "ETIMEDOUT -- SIM binding request timed out", ts: "2026-08-05 09:10" },
+      fraud: null, risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(1, { "01": { status: "stuck", detail: "SIM binding request timed out (ETIMEDOUT). User cannot proceed past login until retried.", fields: [{ v: "SIM binding: ETIMEDOUT", bad: true }] } }),
+      webhooks: [{ event: "SIM binding", status: "err", time: "ETIMEDOUT at 2026-08-05 09:10" }],
+    }],
+  },
+
+  // -- 16. SIM binding INTEGRITY_BREACH ----------------------------------------------
+  edi_integrity_breach: {
+    uuid: "9ad7e8f9-0a12-4345-6789-abcdef012345", name: "Sunil Cement Depot (Sunil Rathi)",
+    phone: "86000 22334", email: "sunil.cement@gmail.com",
+    applications: [{
+      id: "app_edi_016", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "SIM binding hard fail -- INTEGRITY_BREACH",
+      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:12",
+      sourceChannel: "MERCHANT",
+      simBinding: { status: "failed", hard: true, reason: "INTEGRITY_BREACH -- device integrity check failed", ts: "2026-08-05 09:12" },
+      fraud: null, risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(1, { "01": { status: "stuck", detail: "SIM binding hard failure -- INTEGRITY_BREACH. Device failed integrity attestation. Login blocked.", fields: [{ v: "SIM binding: INTEGRITY_BREACH", bad: true }] } }),
+      webhooks: [{ event: "SIM binding", status: "err", time: "INTEGRITY_BREACH at 2026-08-05 09:12" }],
+    }],
+  },
+
+  // -- 17. USER_BLACKLISTED at login --------------------------------------------------
+  edi_blacklisted_login: {
+    uuid: "0be8f901-1b23-4456-789a-bcdef0123456", name: "Ashok Furniture Mart (Ashok Jain)",
+    phone: "85000 33445", email: "ashok.furniture@gmail.com",
+    applications: [{
+      id: "app_edi_017", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "USER_BLACKLISTED at login -- fraud hard block",
+      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:15",
+      sourceChannel: "MERCHANT",
+      simBinding: { status: "success", reason: "OK", ts: "2026-08-05 09:10" },
+      fraud: { status: "hard_block", reason: "USER_BLACKLISTED (slice_x_redflags, validated=true) -- detected at login", ts: "2026-08-05 09:15" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 1,
+      steps: mkEdiSteps(1, { "01": { status: "stuck", detail: "Login succeeded but user is USER_BLACKLISTED. Fraud hard block applied immediately -- cannot proceed.", fields: [{ v: "Fraud: USER_BLACKLISTED", bad: true }] } }),
+      webhooks: [{ event: "Fraud check", status: "err", time: "USER_BLACKLISTED at 2026-08-05 09:15" }],
+    }],
+  },
+
+  // -- 18. RED_FLAG DEVICE_FRAUD at login ---------------------------------------------
+  edi_redflag_login: {
+    uuid: "1cf90a12-2c34-4567-89ab-cdef01234567", name: "Vinod Steel Traders (Vinod Chauhan)",
+    phone: "84000 44556", email: "vinod.steel@gmail.com",
+    applications: [{
+      id: "app_edi_018", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "RED_FLAG DEVICE_FRAUD -- hard block at login",
+      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:18",
+      sourceChannel: "MERCHANT",
+      simBinding: { status: "success", reason: "OK", ts: "2026-08-05 09:10" },
+      fraud: { status: "hard_block", reason: "RED_FLAG -- DEVICE_FRAUD detected on this device fingerprint", ts: "2026-08-05 09:18" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 1,
+      steps: mkEdiSteps(1, { "01": { status: "stuck", detail: "RED_FLAG raised -- DEVICE_FRAUD. Device fingerprint matches a known fraud device. Hard block.", fields: [{ v: "Fraud: RED_FLAG / DEVICE_FRAUD", bad: true }] } }),
+      webhooks: [{ event: "Fraud check", status: "err", time: "RED_FLAG DEVICE_FRAUD at 2026-08-05 09:18" }],
+    }],
+  },
+
+  // -- 19. SIM binding DEVICEID_MISS_MATCH --------------------------------------------
+  edi_sim_device_change: {
+    uuid: "2da01b23-3d45-4678-9abc-def012345678", name: "Reena Beauty Salon (Reena Kapoor)",
+    phone: "83000 55667", email: "reena.beauty@gmail.com",
+    applications: [{
+      id: "app_edi_019", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "SIM binding failed -- DEVICEID_MISS_MATCH",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:20",
+      sourceChannel: "MERCHANT",
+      simBinding: { status: "failed", hard: false, reason: "DEVICEID_MISS_MATCH -- device ID does not match last known device", ts: "2026-08-05 09:20" },
+      fraud: null, risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(1, { "01": { status: "stuck", detail: "SIM binding failed -- DEVICEID_MISS_MATCH. User switched devices; re-verification required.", fields: [{ v: "SIM binding: DEVICEID_MISS_MATCH", warn: true }] } }),
+      webhooks: [{ event: "SIM binding", status: "err", time: "DEVICEID_MISS_MATCH at 2026-08-05 09:20" }],
+    }],
+  },
+
+  // -- 20. Dedupe block -- duplicate PAN at PAN screen --------------------------------
+  edi_dedupe_pan: {
+    uuid: "3eb12c34-4e56-4789-abcd-ef0123456789", name: "Farhan Mobile Repairs (Farhan Sheikh)",
+    phone: "82000 66778", email: "farhan.mobile@gmail.com",
+    applications: [{
+      id: "app_edi_020", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Dedupe block -- duplicate PAN at PAN screen",
+      state: "REJECTED", currentStep: 4, updatedAt: "2026-08-05 09:35",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "dedupe_conflict", reason: "PAN matches an existing active EDI application", ts: "2026-08-05 09:35" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(4, {
+        "04": { status: "stuck", detail: "PAN entered matches an existing EDI application already in progress.",
+          dedupeBlock: { blocked: true, reasonLabel: "duplicate PAN", duplicateUUID: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091", duplicateStatus: "PENDING", timestamp: "2026-08-05 09:35" } },
+      }),
+      webhooks: [{ event: "PAN verified", status: "err", time: "blocked -- dedupe conflict" }],
+    }],
+  },
+
+  // -- 21. NSDL name mismatch at PAN ---------------------------------------------------
+  edi_nsdl_name_mismatch: {
+    uuid: "4fc23d45-5f67-489a-bcde-f01234567890", name: "Geeta Cosmetics (Geeta Rani)",
+    phone: "81000 77889", email: "geeta.cosmetics@gmail.com",
+    applications: [{
+      id: "app_edi_021", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "NSDL name mismatch -- stuck at PAN screen",
+      state: "PENDING", currentStep: 4, updatedAt: "2026-08-05 09:40",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(4, {
+        "04": { status: "stuck", detail: "NSDL PAN lookup returned a name that does not match the entered name. User cannot proceed until resolved.",
+          fields: [{ v: "NSDL name: GEETA RANI DEVI", warn: true }, { v: "Entered name: GEETA RANI", warn: true }] },
+      }),
+      webhooks: [{ event: "PAN verified", status: "err", time: "name mismatch at 2026-08-05 09:40" }],
+    }],
+  },
+
+  // -- 22. CKYC OTP not received -------------------------------------------------------
+  edi_ckyc_otp_fail: {
+    uuid: "50d34e56-6078-49ab-cdef-012345678901", name: "Irfan Leather Works (Irfan Ali)",
+    phone: "79000 88990", email: "irfan.leather@gmail.com",
+    applications: [{
+      id: "app_edi_022", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "CKYC OTP not received -- stuck at CKYC/Aadhaar",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-05 10:50",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 700, source: "Bureau pull post-PAN", ts: "2026-08-05 09:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(7, {
+        "07": { status: "stuck", detail: "CKYC data found at PAN step. CKYC screen shown (Sarsai OTP) but OTP not received after 3 retries.",
+          ckycValidity: "valid", fields: [{ v: "Sarsai OTP: not received x3", bad: true }] },
+      }),
+      webhooks: [{ event: "PAN verified", status: "ok", time: "2026-08-05 09:20" }, { event: "CKYC OTP", status: "err", time: "not received at 2026-08-05 10:50" }],
+    }],
+  },
+
+  // -- 23. Aadhaar vendor down 503 ------------------------------------------------------
+  edi_aadhaar_vendor_down: {
+    uuid: "61e45f67-7189-4abc-def0-123456789012", name: "Kavita Jewellers (Kavita Shah)",
+    phone: "78000 99001", email: "kavita.jewellers@gmail.com",
+    applications: [{
+      id: "app_edi_023", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Aadhaar vendor down (503) -- stuck at CKYC/Aadhaar",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-05 11:05",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 690, source: "Bureau pull post-PAN", ts: "2026-08-05 09:15" },
+      aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "not_verified", ts: "2026-08-05 09:20" }, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(7, {
+        "07": { status: "stuck", detail: "No CKYC found. Aadhaar route selected. Aadhaar vendor (UIDAI proxy) returning 503 -- service unavailable.",
+          fields: [{ v: "Aadhaar vendor: 503 Service Unavailable", bad: true }] },
+      }),
+      webhooks: [{ event: "Aadhaar verification", status: "err", time: "503 at 2026-08-05 11:05" }],
+    }],
+  },
+
+  // -- 24. CKYC invalid -> Aadhaar fallback ---------------------------------------------
+  edi_ckyc_fallback: {
+    uuid: "72f56078-8290-4bcd-ef01-234567890123", name: "Suresh Paints & Hardware (Suresh Iyer)",
+    phone: "77000 00112", email: "suresh.paints@gmail.com",
+    applications: [{
+      id: "app_edi_024", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "CKYC invalid, Aadhaar fallback completed -- at Business Details",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-05 12:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 705, source: "Bureau pull post-PAN", ts: "2026-08-05 09:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(8, {
+        "07": { status: "done", detail: "CKYC data found at PAN step but download returned an invalid/expired record. Fell back to Aadhaar -- verified successfully.",
+          ckycValidity: "invalid", ts: "2026-08-05 11:30" },
+        "08": { status: "stuck", detail: "Registered business name, category, annual sales/income -- awaiting submission." },
+      }),
+      webhooks: [{ event: "CKYC download", status: "err", time: "invalid record -- fell back to Aadhaar" }, { event: "Aadhaar verification", status: "ok", time: "2026-08-05 11:30" }],
+    }],
+  },
+
+  // -- 25. Fraud soft block at Verify Details --------------------------------------------
+  edi_fraud_soft_vd: {
+    uuid: "83067189-93a1-4cde-f012-345678901234", name: "Nisha Handicrafts (Nisha Bhatt)",
+    phone: "76000 11223", email: "nisha.handicrafts@gmail.com",
+    applications: [{
+      id: "app_edi_025", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Fraud soft block at Verify Details -- pending review",
+      state: "PENDING", currentStep: 11, updatedAt: "2026-08-05 13:30",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "flagged", reason: "Soft block -- ADDRESS_MISMATCH_PATTERN", ts: "2026-08-05 13:30" },
+      risk: null, creditScoreCheck: { score: 715, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(11, {
+        "11": { status: "stuck", detail: "User verified details but soft fraud block triggered.",
+          fraudBlock: { blocked: true, blockType: "SOFT", trigger: "verify_details", reason: "ADDRESS_MISMATCH_PATTERN", timestamp: "2026-08-05 13:30" } },
+      }),
+      webhooks: [{ event: "Fraud check", status: "err", time: "soft block at 2026-08-05 13:30" }],
+    }],
+  },
+
+  // -- 26. Fraud hard block at Verify Details ---------------------------------------------
+  edi_fraud_hard_vd: {
+    uuid: "94178290-a4b2-4def-0123-456789012345", name: "Amit Sports Store (Amit Verma)",
+    phone: "75000 22334", email: "amit.sports@gmail.com",
+    applications: [{
+      id: "app_edi_026", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Fraud hard block at Verify Details -- rejected",
+      state: "REJECTED", currentStep: 11, updatedAt: "2026-08-05 13:45",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "hard_block", reason: "USER_BLACKLISTED -- flagged at Verify Details", ts: "2026-08-05 13:45" },
+      risk: null, creditScoreCheck: { score: 660, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 1,
+      steps: mkEdiSteps(11, {
+        "11": { status: "stuck", detail: "User verified details but hard fraud block triggered. Application rejected.",
+          fraudBlock: { blocked: true, blockType: "HARD", trigger: "verify_details", reason: "USER_BLACKLISTED", timestamp: "2026-08-05 13:45" } },
+      }),
+      webhooks: [{ event: "Fraud check", status: "err", time: "hard block at 2026-08-05 13:45" }],
+    }],
+  },
+
+  // -- 27. Post-VKYC hard fraud block -------------------------------------------------
+  edi_post_vkyc_fraud_hard: {
+    uuid: "a5289301-b5c3-4ef0-1234-567890123456", name: "Ramesh Dairy Products (Ramesh Pawar)",
+    phone: "74000 33445", email: "ramesh.dairy@gmail.com",
+    applications: [{
+      id: "app_edi_027", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Post-VKYC hard fraud block -- rejected after VKYC",
+      state: "REJECTED", currentStep: 13, updatedAt: "2026-08-05 15:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "hard_block", reason: "WATCHLIST_HIT -- flagged post-VKYC", ts: "2026-08-05 15:00" },
+      risk: null, creditScoreCheck: { score: 720, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 14:30" }, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 1,
+      steps: mkEdiSteps(13, {
+        "12": { status: "done", detail: "VKYC approved.", vkycOutcome: { status: "APPROVED", ts: "2026-08-05 14:30" } },
+        "13": { status: "stuck", detail: "Post-VKYC pipeline: WATCHLIST_HIT detected. Hard fraud block applied. Application rejected.",
+          fraudBlockPost: { blocked: true, blockType: "HARD", reason: "WATCHLIST_HIT", timestamp: "2026-08-05 15:00" },
+          postVkycOutcome: { case: "rejected", reason: "WATCHLIST_HIT (post-VKYC fraud)", ts: "2026-08-05 15:00" } },
+      }),
+      webhooks: [{ event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-05 14:30" }, { event: "Fraud check (post-VKYC)", status: "err", time: "WATCHLIST_HIT at 2026-08-05 15:00" }],
+    }],
+  },
+
+  // -- 28. VKYC end call -- POOR_CONNECTIVITY --------------------------------------------
+  edi_vkyc_end_call: {
+    uuid: "b639a412-c6d4-4f01-2345-678901234567", name: "Divya Interiors (Divya Menon)",
+    phone: "73000 44556", email: "divya.interiors@gmail.com",
+    applications: [{
+      id: "app_edi_028", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "VKYC call ended -- POOR_CONNECTIVITY, retry needed",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-05 14:10",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 700, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(12, { "12": { status: "stuck", detail: "VKYC call in progress -- agent ended the call.", vkycAgent: { action: "END_CALL", reason: "POOR_CONNECTIVITY", ts: "2026-08-05 14:10" } } }),
+      webhooks: [{ event: "VKYC call", status: "err", time: "ended -- POOR_CONNECTIVITY at 2026-08-05 14:10" }],
+    }],
+  },
+
+  // -- 29. VKYC soft reject -- DOCUMENT_BLUR ---------------------------------------------
+  edi_vkyc_soft_reject: {
+    uuid: "c74ab523-d7e5-4012-3456-789012345678", name: "Kunal Bookstore (Kunal Desai)",
+    phone: "72000 55667", email: "kunal.bookstore@gmail.com",
+    applications: [{
+      id: "app_edi_029", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "VKYC soft reject -- DOCUMENT_BLUR, retry allowed",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-05 14:20",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 705, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(12, { "12": { status: "stuck", detail: "VKYC in progress -- document captured was blurry.", vkycAgent: { action: "REJECTED", rejectType: "SOFT", reason: "DOCUMENT_BLUR", confirmationDone: true, ts: "2026-08-05 14:20" } } }),
+      webhooks: [{ event: "VKYC call", status: "err", time: "soft reject -- DOCUMENT_BLUR at 2026-08-05 14:20" }],
+    }],
+  },
+
+  // -- 30. VKYC hard reject -- SUSPECTED_FRAUD -------------------------------------------
+  edi_vkyc_hard_fraud: {
+    uuid: "d85bc634-e8f6-4123-4567-890123456789", name: "Preeti Garments (Preeti Joshi)",
+    phone: "71000 66778", email: "preeti.garments@gmail.com",
+    applications: [{
+      id: "app_edi_030", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "VKYC hard reject -- SUSPECTED_FRAUD",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-05 14:40",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "flagged", reason: "Flagged by VKYC agent -- SUSPECTED_FRAUD", ts: "2026-08-05 14:40" },
+      risk: null, creditScoreCheck: { score: 690, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 1,
+      steps: mkEdiSteps(12, { "12": { status: "stuck", detail: "VKYC agent suspected fraud during the call.", vkycAgent: { action: "REJECTED", rejectType: "HARD", reason: "SUSPECTED_FRAUD", confirmationDone: true, ts: "2026-08-05 14:40" } } }),
+      webhooks: [{ event: "VKYC call", status: "err", time: "hard reject -- SUSPECTED_FRAUD at 2026-08-05 14:40" }],
+    }],
+  },
+
+  // -- 31. Manual review (FIA) -- under review, stuck ------------------------------------
+  edi_fia_stuck: {
+    uuid: "e96cd745-f907-4234-5678-901234567890", name: "Om Stationery Mart (Om Prakash)",
+    phone: "70000 77889", email: "om.stationery@gmail.com",
+    applications: [{
+      id: "app_edi_031", type: "edi_onboarding", label: "EDI",
+      status: "review", overallLabel: "FIA manual review -- stuck 16 days",
+      state: "PENDING", currentStep: 13, updatedAt: "2026-08-05 16:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      manualReview: { type: "fia", status: "under_review", reason: "Escalated for manual financial-integrity assessment", ts: "2026-07-20 10:00" },
+      risk: null, creditScoreCheck: { score: 640, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "3/3 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 13:00" }, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(13, {
+        "12": { status: "done", detail: "VKYC approved.", vkycOutcome: { status: "APPROVED", ts: "2026-08-05 13:00" } },
+        "13": { status: "stuck", detail: "Routed to FIA manual review. Stuck for 16 days with no update.", reviewOutcome: { outcome: "pending", ts: "2026-07-20 10:00" } },
+      }),
+      webhooks: [{ event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-05 13:00" }, { event: "FIA review", status: "pending", time: "since 2026-07-20 10:00 -- no update" }],
+    }],
+  },
+
+  // -- 32. Manual review -- rejected by KYC Ops ------------------------------------------
+  edi_manual_review_rejected: {
+    uuid: "fa7de856-0a18-4345-6789-012345678901", name: "Bhavna Boutique (Bhavna Rao)",
+    phone: "69000 88990", email: "bhavna.boutique@gmail.com",
+    applications: [{
+      id: "app_edi_032", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Manual review rejected by KYC Ops",
+      state: "REJECTED", currentStep: 13, updatedAt: "2026-08-05 16:30",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      manualReview: { type: "kyc_ops", status: "rejected", reason: "Business address could not be verified on ground visit", ts: "2026-08-05 16:30" },
+      risk: null, creditScoreCheck: { score: 650, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 13:00" }, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(13, {
+        "12": { status: "done", detail: "VKYC approved.", vkycOutcome: { status: "APPROVED", ts: "2026-08-05 13:00" } },
+        "13": { status: "stuck", detail: "KYC Ops manual review rejected the application.", reviewOutcome: { outcome: "rejected", reason: "Business address could not be verified on ground visit", ts: "2026-08-05 16:30" } },
+      }),
+      webhooks: [{ event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-05 13:00" }, { event: "KYC Ops review", status: "err", time: "rejected at 2026-08-05 16:30" }],
+    }],
+  },
+
+  // -- 33. Post-review pipeline -- dedupe blocked ----------------------------------------
+  edi_dedupe_pipeline: {
+    uuid: "0b8ef967-1b29-4456-789a-123456789012", name: "Rahul Electricals (Rahul Bansal)",
+    phone: "68000 99001", email: "rahul.electricals@gmail.com",
+    applications: [{
+      id: "app_edi_033", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Post-VKYC pipeline -- dedupe blocked DUPLICATE_RECORD",
+      state: "REJECTED", currentStep: 13, updatedAt: "2026-08-05 17:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "dedupe_conflict", reason: "DUPLICATE_RECORD -- matched existing CIF post-VKYC", ts: "2026-08-05 17:00" },
+      risk: null, creditScoreCheck: { score: 710, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 13:00" }, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(13, {
+        "12": { status: "done", detail: "VKYC approved.", vkycOutcome: { status: "APPROVED", ts: "2026-08-05 13:00" } },
+        "13": { status: "stuck", detail: "Post-VKYC pipeline blocked at dedupe.",
+          pipeline: [{ name: "Dedupe", status: "blocked", reason: "DUPLICATE_RECORD" }, { name: "Redflag", status: "pending" }, { name: "Audit", status: "pending" }],
+          postVkycOutcome: { case: "rejected", reason: "DUPLICATE_RECORD (dedupe)", ts: "2026-08-05 17:00" } },
+      }),
+      webhooks: [{ event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-05 13:00" }, { event: "Dedupe check", status: "err", time: "DUPLICATE_RECORD at 2026-08-05 17:00" }],
+    }],
+  },
+
+  // -- 34. Wrong PAN -- ops reset Step 4 --------------------------------------------------
+  edi_reset_wrong_pan: {
+    uuid: "1c9f0a78-2c3a-4567-89ab-234567890123", name: "Sanjay Fasteners (Sanjay Gupta)",
+    phone: "67000 00112", email: "sanjay.fasteners@gmail.com",
+    applications: [{
+      id: "app_edi_034", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "Wrong PAN entered -- ops reset journey to Step 4",
+      state: "PENDING", currentStep: 4, updatedAt: "2026-08-05 17:20",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(4, { "04": { status: "reset", detail: "User entered the wrong PAN and had already progressed several steps with incorrect linked data. Ops reset the journey back to PAN screen.", ts: "2026-08-05 17:20" } }),
+      webhooks: [{ event: "Journey reset", status: "ok", time: "reset to Step 4 (PAN) at 2026-08-05 17:20" }],
+    }],
+  },
+
+  // -- 35. VKYC audit-rejected -- auto-reset to VKYC ---------------------------------------
+  edi_reset_vkyc_audit: {
+    uuid: "2daf1b89-3d4b-4678-9abc-345678901234", name: "Poonam Toy Store (Poonam Malhotra)",
+    phone: "66000 11223", email: "poonam.toys@gmail.com",
+    applications: [{
+      id: "app_edi_035", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "VKYC audit-rejected -- auto-reset to VKYC step",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-05 17:40",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: null, creditScoreCheck: { score: 680, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(12, { "12": { status: "reset", detail: "Previous VKYC attempt was audit-rejected. System auto-reset the journey to VKYC for a re-attempt.", ts: "2026-08-05 17:40" } }),
+      webhooks: [{ event: "VKYC audit", status: "err", time: "rejected -- auto-reset triggered" }],
+    }],
+  },
+
+  // -- 36. Abandoned -- idle 65 days -------------------------------------------------------
+  edi_abandoned: {
+    uuid: "3ebf2c90-4e5c-4789-abcd-456789012345", name: "Yogesh Grocery (Yogesh Nair)",
+    phone: "65000 22334", email: "yogesh.grocery@gmail.com",
+    applications: [{
+      id: "app_edi_036", type: "edi_onboarding", label: "EDI",
+      status: "abandoned", overallLabel: "Abandoned -- idle 65 days at Loan Requirement",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-06-01 10:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-06-01 09:00" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(3, { "03": { status: "stuck", detail: "User stopped at Loan Requirement. No activity for 65 days. Journey considered abandoned.", ts: "2026-06-01 10:00" } }),
+      webhooks: [{ event: "Loan requirement", status: "ok", time: "2026-06-01 10:00" }, { event: "Next step", status: "pending", time: "no activity for 65 days" }],
+    }],
+  },
+
+  // -- 37. AML pending -------------------------------------------------------------------
+  edi_aml_pending: {
+    uuid: "4fc03da1-5f6d-489a-bcde-567890123456", name: "Meenakshi Silks (Meenakshi Iyer)",
+    phone: "64000 33445", email: "meenakshi.silks@gmail.com",
+    applications: [{
+      id: "app_edi_037", type: "edi_onboarding", label: "EDI",
+      status: "pending", overallLabel: "AML screening pending -- currently at VKYC",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-05 18:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      aml: { status: "pending", match: false, ts: "2026-08-05 18:00" },
+      risk: null, creditScoreCheck: { score: 730, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(12, { "12": { status: "stuck", detail: "VKYC in progress. AML screening (name/entity list check) still pending.", ts: "2026-08-05 18:00" } }),
+      webhooks: [{ event: "AML screening", status: "pending", time: "in progress as of 2026-08-05 18:00" }],
+    }],
+  },
+
+  // -- 38. AML possible match --------------------------------------------------------------
+  edi_aml_match: {
+    uuid: "50d14eb2-607e-49ab-cdef-678901234567", name: "Tariq Import Export (Tariq Ansari)",
+    phone: "63000 44556", email: "tariq.importexport@gmail.com",
+    applications: [{
+      id: "app_edi_038", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "AML possible match -- flagged, escalated",
+      state: "PENDING", currentStep: 12, updatedAt: "2026-08-05 18:15",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "flagged", reason: "AML possible match -- escalated to compliance", ts: "2026-08-05 18:15" },
+      aml: { status: "pending", match: true, reason: "Name partial match against sanctions watchlist -- manual clearance required", ts: "2026-08-05 18:15" },
+      risk: null, creditScoreCheck: { score: 715, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" }, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(12, { "12": { status: "stuck", detail: "AML screening flagged a possible name/entity match against a sanctions watchlist. Escalated to compliance for manual clearance.", fields: [{ v: "AML: possible match", bad: true }] } }),
+      webhooks: [{ event: "AML screening", status: "err", time: "possible match at 2026-08-05 18:15" }],
+    }],
+  },
+
+  // -- 39. Dedupe clear at all checkpoints (PAN + VKYC) ------------------------------------
+  edi_dedupe_clear: {
+    uuid: "61e25fc3-718f-4abc-def0-789012345678", name: "Harish Plumbing Supplies (Harish Nayak)",
+    phone: "62000 55667", email: "harish.plumbing@gmail.com",
+    applications: [{
+      id: "app_edi_039", type: "edi_onboarding", label: "EDI",
+      status: "active", overallLabel: "Dedupe clear at all checkpoints -- sanctioned, disbursed",
+      state: "DISBURSED", currentStep: 16, updatedAt: "2026-08-06 10:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: { status: "approved", ts: "2026-08-05 20:00" },
+      creditScoreCheck: { score: 760, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "3/3 banks linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 19:00" }, audit: null,
+      sanction: { amount: "4,00,000", ts: "2026-08-05 20:15" }, loanDisbursed: { status: "disbursed", amount: "4,00,000", ts: "2026-08-06 10:00" },
+      redflagCount: 0,
+      steps: mkEdiSteps(16, {
+        "04": { status: "done", detail: "Individual PAN entered. Dedupe check clear -- no matching PAN found.", dedupe: { status: "clear" } },
+        "12": { status: "done", detail: "VKYC approved. Dedupe re-checked at VKYC -- still clear.", vkycOutcome: { status: "APPROVED", ts: "2026-08-05 19:00" }, dedupe: { status: "clear" } },
+        "13": { status: "done", detail: "Case 2: all checks passed.", postVkycOutcome: { case: "approved", ts: "2026-08-05 20:00" } },
+        "14": { status: "done", detail: "Approved: 4,00,000", sanction: { amount: "4,00,000" } },
+        "15": { status: "skip", detail: "GST verified before VKYC. Skipped.", gstCpv: { verifiedBeforeVkyc: true } },
+        "16": { status: "done", detail: "Loan disbursed successfully.", disbursement: { status: "disbursed", amount: "4,00,000" } },
+      }),
+      webhooks: [{ event: "Dedupe (PAN)", status: "ok", time: "clear at 2026-08-05 09:10" }, { event: "Dedupe (VKYC)", status: "ok", time: "clear at 2026-08-05 19:00" }, { event: "Loan disbursed: 4,00,000", status: "ok", time: "2026-08-06 10:00" }],
+    }],
+  },
+
+  // -- 40. Dedupe many candidates -----------------------------------------------------------
+  edi_dedupe_many: {
+    uuid: "72f360d4-829a-4bcd-ef01-890123456789", name: "Zeeshan Auto Garage (Zeeshan Khan)",
+    phone: "61000 66778", email: "zeeshan.garage@gmail.com",
+    applications: [{
+      id: "app_edi_040", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Dedupe -- many candidates matched at PAN screen",
+      state: "REJECTED", currentStep: 4, updatedAt: "2026-08-06 11:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "dedupe_conflict", reason: "Multiple candidate matches found -- manual review required", ts: "2026-08-06 11:00" },
+      risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(4, {
+        "04": { status: "stuck", detail: "Dedupe check returned multiple candidate matches on phone + address combination.",
+          dedupe: { status: "conflict", where: "PAN screen", candidates: [
+            { uuid: "u1a2b3c4-...", cif: "380001234567", status: "ACTIVE", name: "Zeeshan A. Khan" },
+            { uuid: "u5d6e7f8-...", cif: "380009876543", status: "CLOSED", name: "Zeeshan Khan" },
+            { uuid: "u9g0h1i2-...", cif: "-", status: "PENDING", name: "Z. Khan" },
+          ], rule: "phone+address fuzzy match", decision: "manual review queued" } },
+      }),
+      webhooks: [{ event: "Dedupe check", status: "err", time: "3 candidates matched at 2026-08-06 11:00" }],
+    }],
+  },
+
+  // -- 41. Loan disbursement UID pending ------------------------------------------------------
+  edi_uid_pending: {
+    uuid: "830471e5-93ab-4cde-f012-901234567890", name: "Alka Home Decor (Alka Saxena)",
+    phone: "60000 77889", email: "alka.homedecor@gmail.com",
+    applications: [{
+      id: "app_edi_041", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Sanctioned but disbursement blocked -- account link pending",
+      state: "SANCTIONED", currentStep: 16, updatedAt: "2026-08-06 12:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:00" },
+      risk: { status: "approved", ts: "2026-08-05 20:00" },
+      creditScoreCheck: { score: 725, ts: "2026-08-05 09:15" }, aa: { status: "linked", detail: "1/1 bank linked", ts: "2026-08-05 10:00" },
+      gst: { status: "verified", ts: "2026-08-05 09:20" }, udyam: { status: "verified", ts: "2026-08-05 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-05 19:00" }, audit: null,
+      sanction: { amount: "1,50,000", ts: "2026-08-05 20:15" }, loanDisbursed: null,
+      redflagCount: 0,
+      steps: mkEdiSteps(16, {
+        "14": { status: "done", detail: "Approved: 1,50,000", sanction: { amount: "1,50,000" } },
+        "15": { status: "skip", detail: "GST verified before VKYC. Skipped.", gstCpv: { verifiedBeforeVkyc: true } },
+        "16": { status: "stuck", detail: "Disbursement blocked -- destination bank account link is still pending activation on core banking.", fields: [{ v: "Account link: PENDING", bad: true }] },
+      }),
+      webhooks: [{ event: "Sanction issued: 1,50,000", status: "ok", time: "2026-08-05 20:15" }, { event: "Loan disbursed", status: "err", time: "blocked -- account link pending" }],
+    }],
+  },
+
+  // -- 42. Systemic NSDL 5xx spike (multiple users affected) -----------------------------------
+  edi_systemic_nsdl: {
+    uuid: "94158af6-a4bc-4def-0123-012345678901", name: "[Test] Systemic NSDL 5xx spike",
+    phone: "59000 88990", email: "test.nsdl.spike@slice.in",
+    applications: [{
+      id: "app_edi_042", type: "edi_onboarding", label: "EDI",
+      status: "stuck", overallLabel: "Systemic -- NSDL returning 5xx across multiple users",
+      state: "PENDING", currentStep: 4, updatedAt: "2026-08-06 13:00",
+      sourceChannel: "MERCHANT",
+      fraud: null, risk: null, creditScoreCheck: null, aa: null, gst: null, udyam: null, vkyc: null, audit: null,
+      sanction: null, loanDisbursed: null, redflagCount: 0,
+      steps: mkEdiSteps(4, { "04": { status: "stuck", detail: "NSDL PAN verification returning HTTP 5xx. This is affecting multiple users simultaneously -- likely a systemic outage, not a per-user issue.", fields: [{ v: "NSDL: 5xx (systemic)", bad: true }] } }),
+      webhooks: [{ event: "PAN verified", status: "err", time: "NSDL 5xx spike at 2026-08-06 13:00" }],
+    }],
+  },
+
 };
 
 // ops_dashboard (EDI) -- state, render logic, and event wiring
@@ -749,12 +1377,16 @@ function deriveAlerts(u, app) {
   const add = (level, title, body) => A.push({ level, title, body });
   const f = app.fraud, g = app.gst, ud = app.udyam, v = app.vkyc, aud = app.audit;
   const r = app.risk, cs = app.creditScoreCheck, aa = app.aa;
+  const sim = app.simBinding, aml = app.aml, mr = app.manualReview;
 
   // -- P0 --
   if (f && f.status === "hard_block") add("p0", "Fraud hard block / blacklisted", f.reason || "USER_BLACKLISTED. Owner: Fraud squad.");
   if (v && v.status === "REJECTED") add("p0", "VKYC rejected", "Rejection reason: " + (v.rejectionReason || "not specified") + ".");
-  if (r && r.status === "rejected") add("p0", "Risk rejected -- waitlisted", (r.reason || "Risk decision rejected") + ". User is on waitlist.");
+  if (r && r.status === "rejected" && app.state !== "WAITLISTED") add("p0", "Risk rejected", (r.reason || "Risk decision rejected") + ".");
   if (f && f.status === "audit_declined") add("p0", "Declined post-audit", (f.reason || "CONCURRENT_AUDIT_REVIEW_DECLINED") + ". Owner: Review/Audit team.");
+  if (sim && sim.status === "failed" && sim.hard) add("p0", "SIM binding hard fail", (sim.reason || "") + " Owner: Trust & Safety.");
+  if (aml && aml.match) add("p0", "AML possible match", aml.reason || "Name/entity possible match flagged by AML screening.");
+  if (mr && mr.status === "rejected") add("p0", "Manual review rejected", (mr.reason || "") + " Owner: " + (mr.type === "fia" ? "FIA" : "KYC Ops") + ".");
 
   // -- P1 --
   if (f && f.status === "dedupe_conflict") add("p1", "Dedupe conflict -- existing account", (f.reason || "") + " Owner: UID team.");
@@ -762,6 +1394,9 @@ function deriveAlerts(u, app) {
   if (v && v.status === "PENDING") add("p1", "VKYC pending", "No update since " + (v.ts || "scheduling") + ".");
   if (aud && aud.status === "under_review") add("p1", "In audit review", "Since " + (aud.ts || "unknown") + ".");
   if (aa && aa.status === "partial") add("p1", "AA bank linking failed", (aa.detail || "Some banks failed OTP during Account Aggregator step."));
+  if (sim && sim.status === "failed" && !sim.hard) add("p1", "SIM binding failed (soft)", sim.reason || "SIM binding check failed but not a hard block.");
+  if (mr && mr.status === "under_review") add("p1", "In manual review", (mr.type === "fia" ? "FIA" : "KYC Ops") + " review pending since " + (mr.ts || "unknown") + ".");
+  if (aml && aml.status === "pending") add("p1", "AML screening pending", "AML check has not completed yet.");
 
   // -- Info --
   if (app.state === "WAITLISTED") add("info", "Waitlisted with actionable items", "User sees waitlist screen with score and improvement steps.");
@@ -822,7 +1457,9 @@ function renderApp(u, app) {
 
         <div class="card">
           <div class="card-header"><span class="card-title">Checks</span></div>
+          ${renderSIMCheck(app.simBinding)}
           ${renderFraudCheck(app.fraud)}
+          ${renderAMLCheck(app.aml)}
           ${renderRiskCheck(app.risk)}
           ${renderCreditScoreCheck(app.creditScoreCheck)}
           ${renderAACheck(app.aa)}
@@ -830,6 +1467,7 @@ function renderApp(u, app) {
           ${renderUdyamCheck(app.udyam)}
           ${renderVkycCheck(app.vkyc)}
           ${renderAuditCheck(app.audit)}
+          ${renderManualReviewCheck(app.manualReview)}
         </div>
 
         <div class="card">

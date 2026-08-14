@@ -232,28 +232,102 @@ function renderDisbursementCard(step) {
   return "";
 }
 
+// -- DSA-ported helpers (dedupe, ckyc, timestamp derivation) --
+
+function effectiveDedupe(step) {
+  if (step.dedupe) return step.dedupe;
+  const n = (step.name || "").toLowerCase();
+  const isPan = n.includes("pan");
+  const isVkyc = n.includes("vkyc") && !n.includes("post");
+  if (!(isPan || isVkyc)) return null;
+  if (step.dedupeBlock && step.dedupeBlock.blocked) return { status: "conflict", matchedUUIDs: [step.dedupeBlock.duplicateUUID] };
+  if (step.status === "done" || step.status === "skip") return { status: "clear" };
+  return null;
+}
+
+function effectiveCkyc(step) {
+  const n = (step.name || "").toLowerCase();
+  if (!n.includes("ckyc") || n.includes("score")) return null;
+  if (step.ckycValidity) return step.ckycValidity;
+  if (step.status === "done") return "valid";
+  return null;
+}
+function renderCkycMarker(v) {
+  if (!v) return "";
+  const valid = v === "valid";
+  const cls = valid ? "b-done" : "b-warn";
+  const label = valid ? "CKYC record -- Valid" : "CKYC record -- Invalid -> Aadhaar fallback";
+  return '<div class="ckyc-line"><span class="tl-badge ' + cls + '">' + label + '</span></div>';
+}
+
+function deriveTs(base, i) {
+  const d = new Date(String(base || "2026-08-01 10:00").replace(" ", "T"));
+  if (isNaN(d.getTime())) return "";
+  d.setMinutes(d.getMinutes() + i * 4);
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+function renderDedupe(d, ts, where) {
+  if (!d) return "";
+  const clear = d.status === "clear";
+  const cls = clear ? "b-done" : "b-stuck";
+  const label = clear ? "Dedupe -- Clear" : "Dedupe -- Conflict";
+  const line = '<div class="dedupe-line"><span class="tl-badge ' + cls + '">' + label + '</span>' + (ts ? '<span class="tl-ts" style="margin-left:auto;">' + ts + '</span>' : "") + '</div>';
+  if (clear) return line;
+  let lines = Array.isArray(d.lines) && d.lines.length ? d.lines.slice() : [];
+  if (!lines.length) {
+    if (d.matchedOn) lines.push('<span class="k">Matched on:</span> ' + (Array.isArray(d.matchedOn) ? d.matchedOn.join(", ") : d.matchedOn));
+    (d.candidates || []).forEach((c, i) => lines.push(
+      '<span class="k">Candidate ' + (i + 1) + ':</span> ' + (c.uuid || "--") +
+      (c.cif ? " -- CIF " + c.cif : "") + (c.status ? " -- " + c.status : "") + (c.name ? " -- " + c.name : "")));
+    if (!(d.candidates || []).length) {
+      (d.matchedUUIDs || []).forEach(u => lines.push('<span class="k">Existing user:</span> ' + u));
+      (d.matchedCIFs || []).forEach(c => lines.push('<span class="k">Existing CIF:</span> ' + c));
+    }
+    if (d.rule) lines.push('<span class="k">Rule:</span> ' + d.rule);
+    if (d.decision) lines.push('<span class="k">Decision:</span> ' + d.decision);
+  }
+  const whereLabel = d.where || where || "";
+  const panel = '<div class="dedupe-panel">' +
+    (whereLabel ? '<div class="dedupe-panel-where">Matched at: ' + whereLabel + '</div>' : "") +
+    lines.map(l => '<div class="dedupe-panel-line">' + l + '</div>').join("") +
+    '</div>';
+  return line + panel;
+}
+
 function renderStep(step, isLast, i, appBase) {
   const resolvedTs = step.ts || "";
   const [badgeCls, badgeLabel] = stepBadge(step.status);
   const tsLabel = resolvedTs;
+
+  // Reused step -- short-circuit
+  if (step.reused) {
+    return '<div class="tl-item"><div class="tl-node muted">\u{1F4C4}</div><div class="tl-body">' +
+      '<div class="tl-title">' + step.name + (resolvedTs ? '<span class="tl-ts">' + resolvedTs + '</span>' : "") + '</div>' +
+      '<div class="tl-desc">' + step.detail + '</div>' +
+      '<span class="tl-badge b-reused">Reused from ' + step.reusedFrom + '</span></div></div>';
+  }
+
   let extra = "";
 
   // Non-individual PAN block
   extra += renderNonIndividualBlock(step);
 
-  // Fraud / blacklist block
+  // Fraud block at verify details (soft or hard)
   if (step.fraudBlock && step.fraudBlock.blocked) {
     const fb = step.fraudBlock;
-    extra += `<div class="block-banner bb-hard">
-      <div>
-        <span class="bb-label">Fraud hard block</span>
-        Reason: <strong>${fb.reason}</strong>${(fb.timestamp || resolvedTs) ? ` &nbsp;&middot;&nbsp; ${fb.timestamp || resolvedTs}` : ""}
-        <br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad -- CX cannot unblock</span>
-      </div>
-    </div>`;
+    const cls = fb.blockType === "HARD" ? "bb-hard" : "bb-soft";
+    const label = fb.blockType === "HARD" ? "Fraud hard block" : "Fraud soft block";
+    extra += '<div class="block-banner ' + cls + '">' +
+      '<div>' +
+      '<span class="bb-label">' + label + ' -- triggered at ' + (fb.trigger || "verify_details").replace(/_/g, " ") + '</span>' +
+      'Reason: <strong>' + fb.reason + '</strong>' + ((fb.timestamp || resolvedTs) ? ' &nbsp;&middot;&nbsp; ' + (fb.timestamp || resolvedTs) : "") +
+      '<br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad -- CX cannot unblock</span>' +
+      '</div></div>';
   }
 
-  // Dedupe block
+  // Dedupe block (legacy banner -- kept for backward compat)
   if (step.dedupeBlock && step.dedupeBlock.blocked) {
     const db = step.dedupeBlock;
     extra += `<div class="block-banner bb-hard">
@@ -302,8 +376,37 @@ function renderStep(step, isLast, i, appBase) {
     }
   }
 
+  // VKYC agent action
+  if (step.vkycAgent) {
+    const va = step.vkycAgent;
+    const vaTs = va.ts || resolvedTs;
+    const tsRow = vaTs ? '<div class="agent-row"><strong>Time:</strong> ' + vaTs + '</div>' : "";
+    if (va.action === "ACCEPTED") {
+      extra += '<div class="agent-card ac-accept"><div class="agent-card-label">VKYC Agent Action</div><div class="agent-card-action">✓ Accepted</div>' + tsRow + '</div>';
+    } else if (va.action === "END_CALL") {
+      extra += '<div class="agent-card ac-end"><div class="agent-card-label">VKYC Agent Action</div><div class="agent-card-action">Call ended by agent</div>' +
+        (va.reason ? '<div class="agent-row"><strong>Reason:</strong> ' + va.reason + '</div>' : "") + tsRow + '</div>';
+    } else if (va.action === "REJECTED") {
+      const typeLabel = va.rejectType === "HARD" ? "Hard reject" : "Soft reject";
+      extra += '<div class="agent-card ac-reject"><div class="agent-card-label">VKYC Agent Action</div><div class="agent-card-action">✗ ' + typeLabel + '</div>' +
+        (va.reason ? '<div class="agent-row"><strong>Reason:</strong> ' + va.reason + '</div>' : "") +
+        '<div class="agent-row"><strong>Confirmation:</strong> ' + (va.confirmationDone ? "✓ Confirmed" : "⚠ Awaiting confirmation") + '</div>' + tsRow + '</div>';
+    }
+  }
+
   // Post-VKYC outcome
   extra += renderPostVkycOutcome(step);
+
+  // Post-VKYC fraud block
+  if (step.fraudBlockPost && step.fraudBlockPost.blocked) {
+    const fb = step.fraudBlockPost;
+    const cls = fb.blockType === "HARD" ? "bb-hard" : "bb-soft";
+    extra += '<div class="block-banner ' + cls + '">' +
+      '<div><span class="bb-label">Post-VKYC fraud block (' + (fb.blockType || "HARD") + ')</span>' +
+      'Reason: <strong>' + fb.reason + '</strong>' + ((fb.timestamp || resolvedTs) ? ' &nbsp;&middot;&nbsp; ' + (fb.timestamp || resolvedTs) : "") +
+      '<br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad -- Review queues blocked until unblocked</span>' +
+      '</div></div>';
+  }
 
   // Audit review outcome
   if (step.auditOutcome) {
@@ -322,6 +425,40 @@ function renderStep(step, isLast, i, appBase) {
     </div>`;
   }
 
+  // Review outcome (generic, from DSA)
+  if (step.reviewOutcome) {
+    const ro = step.reviewOutcome;
+    const outMap = {
+      accepted:      ["ro-accept",  "✓ Accepted"],
+      rejected:      ["ro-reject",  "✗ Rejected"],
+      mark_for_later:["ro-later",   "⌛ Marked for later"],
+      app_start:     ["ro-appstart","→ app_start triggered"],
+      pending:       ["ro-pending", "Awaiting decision"],
+    };
+    const [cls, label] = outMap[ro.outcome] || ["ro-pending", ro.outcome];
+    const roTs = ro.ts || resolvedTs;
+    extra += '<div class="review-outcome">' +
+      '<span class="ro-badge ' + cls + '">' + label + '</span>' +
+      (ro.reason ? '<span class="ro-badge ro-pending" style="font-family:monospace;max-width:100%;word-break:break-word;white-space:normal;">Reason: ' + ro.reason + '</span>' : "") +
+      (roTs ? '<span class="tl-ts" style="margin-left:auto;">' + roTs + '</span>' : "") +
+      '</div>';
+  }
+
+  // Post-VKYC pipeline (Risk -> Fraud -> Dedupe etc.)
+  if (step.pipeline) {
+    const clsMap = { pass:"pl-pass", blocked:"pl-blocked", pending:"pl-pending", warn:"pl-warn" };
+    const nodes = step.pipeline.map((p, i) => {
+      const badge = p.status === "pass" ? p.name + ": PASS"
+                  : p.status === "blocked" ? p.name + ": BLOCKED" + (p.reason ? " (" + p.reason + ")" : "")
+                  : p.name;
+      return '<div class="pl-node">' +
+        (i > 0 ? '<span class="pl-arrow">›</span>' : "") +
+        '<span class="pl-badge ' + (clsMap[p.status] || "pl-pending") + '">' + badge + '</span>' +
+        '</div>';
+    }).join("");
+    extra += '<div class="pipeline">' + nodes + (resolvedTs ? '<span class="tl-ts" style="margin-left:auto;">' + resolvedTs + '</span>' : "") + '</div>';
+  }
+
   // Sanction card
   extra += renderSanctionCard(step);
 
@@ -334,8 +471,12 @@ function renderStep(step, isLast, i, appBase) {
   // Waitlist card
   extra += renderWaitlistCard(step);
 
+  // Derive dedupe and ckyc markers
+  const dedupe = effectiveDedupe(step);
+  const ckyc = effectiveCkyc(step);
+
   const detailRows = step.data ? Object.entries(step.data).map(([k, v]) => `<div class="tl-d-row"><span class="tl-d-k">${k}</span><span class="tl-d-v">${v}</span></div>`).join("") : "";
-  const fields = (step.fields || []);
+  const fields = (step.fields || []).filter(f => !/dedupe/i.test(typeof f === "string" ? f : (f.v || "")));
   return `
     <div class="tl-item">
       <div class="tl-node ${nodeClass(step.status)}">${stepIcon(step.name)}</div>
@@ -343,6 +484,8 @@ function renderStep(step, isLast, i, appBase) {
         <div class="tl-title">${step.name}${tsLabel ? `<span class="tl-ts">${tsLabel}</span>` : `<span class="tl-ts" style="opacity:.55;">—</span>`}</div>
         <div class="tl-desc">${step.detail}</div>
         ${fields.length ? `<div class="step-fields">${fields.map(renderField).join("")}</div>` : ""}
+        ${ckyc ? renderCkycMarker(ckyc) : ""}
+        ${dedupe ? renderDedupe(dedupe, resolvedTs, step.name) : ""}
         <div class="tl-badge-row">
           <span class="tl-badge ${badgeCls}">${badgeLabel}</span>
           ${detailRows ? `<span class="tl-more" onclick="toggleStepDetail(${i})">details ▾</span>` : ""}
@@ -451,6 +594,53 @@ function renderAuditCheck(data) {
     ${data.reason ? `<span class="check-reason">${data.reason}</span>` : ""}
     <span class="check-ts">${data.ts || "—"}</span>
   </div>`;
+}
+
+// -- DSA-ported check renderers --
+
+function renderSIMCheck(data) {
+  if (!data) return '<div class="check-row"><span class="check-row-label">SIM binding</span><span class="check-na">N/A</span></div>';
+  const bound = data.status === "success";
+  const statusCls = bound ? "check-clear" : "check-fail";
+  const statusLabel = bound ? "Done" : "Not done";
+  return '<div class="check-row">' +
+    '<span class="check-row-label">SIM binding</span>' +
+    '<span class="check-status ' + statusCls + '">' + statusLabel + '</span>' +
+    (data.reason ? '<span class="check-reason">' + data.reason + '</span>' : "") +
+    (data.ts ? '<span class="check-ts">' + data.ts + '</span>' : "") +
+    '</div>';
+}
+
+function renderAMLCheck(data) {
+  if (!data) return '<div class="check-row"><span class="check-row-label">AML</span><span class="check-na">N/A</span></div>';
+  const cls = data.status === "verified" ? "check-clear" : (data.match ? "check-fail" : "check-soft");
+  const label = { verified: "Verified", pending: "Pending" }[data.status] || data.status;
+  const matchTxt = data.match ? "Possible match found" : "No match";
+  return '<div class="check-row">' +
+    '<span class="check-row-label">AML</span>' +
+    '<span class="check-status ' + cls + '">' + label + '</span>' +
+    '<span class="check-reason">' + matchTxt + (data.reason ? " -- " + data.reason : "") + '</span>' +
+    (data.ts ? '<span class="check-ts">' + data.ts + '</span>' : "") +
+    '</div>';
+}
+
+function renderManualReviewCheck(data) {
+  if (!data) return '<div class="check-row"><span class="check-row-label">Manual review</span><span class="check-na">Not triggered</span></div>';
+  const typeLabel = data.type === "fia" ? "FIA" : "KYC Ops";
+  const statusCls = {under_review:"check-soft", cleared:"check-clear", rejected:"check-fail"}[data.status] || "";
+  const statusLabel = {under_review:"Under review", cleared:"Cleared", rejected:"Rejected"}[data.status] || data.status;
+  return '<div class="check-row">' +
+    '<span class="check-row-label">Manual review</span>' +
+    '<span class="check-status ' + statusCls + '">' + typeLabel + ' -- ' + statusLabel + '</span>' +
+    (data.reason ? '<span class="check-reason">' + data.reason + '</span>' : "") +
+    '<span class="check-ts">' + data.ts + '</span>' +
+    '</div>';
+}
+
+function deriveRiskDecision(app) {
+  if (app.riskDecision) return app.riskDecision;
+  if (app.risk) return app.risk;
+  return null;
 }
 
 // -- Event-delivery row (shared) --

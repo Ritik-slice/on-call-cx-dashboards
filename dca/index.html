@@ -40,45 +40,129 @@
   <div class="tc-list">
     <div class="tc-list-inner">
       <div class="tc-group">
-        <div class="tc-section-header">Happy path</div>
+        <div class="tc-section-header">Happy paths</div>
         <div class="tc-row" onclick="loadTest('dca_happy_path')" data-uuid="dca_happy_path"><span class="tc-num">1</span>Full happy path — CKYC route, approved, CA created</div>
+        <div class="tc-row" onclick="loadTest('dca_happy_aadhaar')" data-uuid="dca_happy_aadhaar"><span class="tc-num">2</span>Happy path — CKYC not found, Aadhaar direct</div>
+        <div class="tc-row" onclick="loadTest('dca_fia_resolved')" data-uuid="dca_fia_resolved"><span class="tc-num">3</span>FIA triggered, resolved, active</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">PAN validation</div>
-        <div class="tc-row" onclick="loadTest('dca_non_individual_pan')" data-uuid="dca_non_individual_pan"><span class="tc-num">2</span>Non-individual PAN (partnership) — blocked</div>
+        <div class="tc-section-header">Login failures</div>
+        <div class="tc-row" onclick="loadTest('dca_sim_timeout')" data-uuid="dca_sim_timeout"><span class="tc-num">4</span>SIM binding — ETIMEDOUT</div>
+        <div class="tc-row" onclick="loadTest('dca_integrity')" data-uuid="dca_integrity"><span class="tc-num">5</span>INTEGRITY_BREACH</div>
+        <div class="tc-row" onclick="loadTest('dca_blacklisted_login')" data-uuid="dca_blacklisted_login"><span class="tc-num">6</span>USER_BLACKLISTED at login</div>
+        <div class="tc-row" onclick="loadTest('dca_creditfreeze_login')" data-uuid="dca_creditfreeze_login"><span class="tc-num">7</span>CREDITFREEZE at login</div>
+        <div class="tc-row" onclick="loadTest('dca_redflag_login')" data-uuid="dca_redflag_login"><span class="tc-num">8</span>RED_FLAG DEVICE_FRAUD</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">CKYC / Aadhaar paths</div>
-        <div class="tc-row" onclick="loadTest('dca_ckyc_path')" data-uuid="dca_ckyc_path"><span class="tc-num">3</span>CKYC path — Sarsai OTP verified</div>
-        <div class="tc-row" onclick="loadTest('dca_aadhaar_path')" data-uuid="dca_aadhaar_path"><span class="tc-num">4</span>Aadhaar path — no CKYC data, direct Aadhaar</div>
-        <div class="tc-row" onclick="loadTest('dca_ckyc_fallback')" data-uuid="dca_ckyc_fallback"><span class="tc-num">5</span>CKYC fallback — 3 wrong OTPs, switched to Aadhaar</div>
+        <div class="tc-section-header">PAN verification</div>
+        <div class="tc-row" onclick="loadTest('dca_non_individual_pan')" data-uuid="dca_non_individual_pan"><span class="tc-num">9</span>Non-individual PAN (partnership) — blocked</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_pan')" data-uuid="dca_dedupe_pan"><span class="tc-num">10</span>Dedupe block — duplicate PAN</div>
+        <div class="tc-row" onclick="loadTest('dca_nsdl_false_neg')" data-uuid="dca_nsdl_false_neg"><span class="tc-num">11</span>NSDL false negative</div>
+        <div class="tc-row" onclick="loadTest('dca_nsdl_name_mismatch')" data-uuid="dca_nsdl_name_mismatch"><span class="tc-num">12</span>NSDL name mismatch</div>
+        <div class="tc-row" onclick="loadTest('dca_nsdl_5xx')" data-uuid="dca_nsdl_5xx"><span class="tc-num">13</span>NSDL 5xx spike</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">Business verification blocks</div>
-        <div class="tc-row" onclick="loadTest('dca_udyam_block')" data-uuid="dca_udyam_block"><span class="tc-num">6</span>Udyam not verified — mandatory block at step 6</div>
-        <div class="tc-row" onclick="loadTest('dca_gst_invalid')" data-uuid="dca_gst_invalid"><span class="tc-num">7</span>GST invalid / cancelled — stuck at step 7</div>
+        <div class="tc-section-header">CKYC / Aadhaar</div>
+        <div class="tc-row" onclick="loadTest('dca_ckyc_otp_fail')" data-uuid="dca_ckyc_otp_fail"><span class="tc-num">14</span>CKYC OTP not received</div>
+        <div class="tc-row" onclick="loadTest('dca_ckr_push_missing')" data-uuid="dca_ckr_push_missing"><span class="tc-num">15</span>ckr-push not received</div>
+        <div class="tc-row" onclick="loadTest('dca_aadhaar_vendor_down')" data-uuid="dca_aadhaar_vendor_down"><span class="tc-num">16</span>Aadhaar vendor down 503</div>
+        <div class="tc-row" onclick="loadTest('dca_addr_proof_missing')" data-uuid="dca_addr_proof_missing"><span class="tc-num">17</span>addressProof missing</div>
+        <div class="tc-row" onclick="loadTest('dca_poa_na')" data-uuid="dca_poa_na"><span class="tc-num">18</span>POA Type = N/A</div>
+        <div class="tc-row" onclick="loadTest('dca_id_name_mismatch')" data-uuid="dca_id_name_mismatch"><span class="tc-num">19</span>ID name != address name</div>
+        <div class="tc-row" onclick="loadTest('dca_ckyc_fallback')" data-uuid="dca_ckyc_fallback"><span class="tc-num">20</span>CKYC download invalid, Aadhaar fallback</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">Pre-VKYC fraud</div>
-        <div class="tc-row" onclick="loadTest('dca_pre_vkyc_fraud')" data-uuid="dca_pre_vkyc_fraud"><span class="tc-num">8</span>Pre-VKYC fraud block — blacklisted, VKYC skipped</div>
+        <div class="tc-section-header">Business Details / Address</div>
+        <div class="tc-row" onclick="loadTest('dca_udyam_block')" data-uuid="dca_udyam_block"><span class="tc-num">21</span>Udyam not verified — mandatory block</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_invalid')" data-uuid="dca_gst_invalid"><span class="tc-num">22</span>GST not verified — informational</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">VKYC</div>
-        <div class="tc-row" onclick="loadTest('dca_vkyc_rejected')" data-uuid="dca_vkyc_rejected"><span class="tc-num">9</span>VKYC rejected — FACE_MISMATCH</div>
+        <div class="tc-section-header">Fraud blocks</div>
+        <div class="tc-row" onclick="loadTest('dca_fraud_soft_vd')" data-uuid="dca_fraud_soft_vd"><span class="tc-num">23</span>Soft block at verify details</div>
+        <div class="tc-row" onclick="loadTest('dca_fraud_hard_vd')" data-uuid="dca_fraud_hard_vd"><span class="tc-num">24</span>Hard block at verify details</div>
+        <div class="tc-row" onclick="loadTest('dca_pre_vkyc_fraud')" data-uuid="dca_pre_vkyc_fraud"><span class="tc-num">25</span>Pre-VKYC fraud blacklisted</div>
+        <div class="tc-row" onclick="loadTest('dca_post_vkyc_fraud_hard')" data-uuid="dca_post_vkyc_fraud_hard"><span class="tc-num">26</span>Post-VKYC hard block</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">Post-VKYC checks</div>
-        <div class="tc-row" onclick="loadTest('dca_post_vkyc_dedupe')" data-uuid="dca_post_vkyc_dedupe"><span class="tc-num">10</span>Post-VKYC dedupe — PAN conflict</div>
-        <div class="tc-row" onclick="loadTest('dca_post_vkyc_redflag')" data-uuid="dca_post_vkyc_redflag"><span class="tc-num">11</span>Post-VKYC redflag — blocker redflag</div>
-        <div class="tc-row" onclick="loadTest('dca_audit_declined')" data-uuid="dca_audit_declined"><span class="tc-num">12</span>Audit declined — CONCURRENT_AUDIT_REVIEW_DECLINED</div>
+        <div class="tc-section-header">VKYC agent actions</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_end_call')" data-uuid="dca_vkyc_end_call"><span class="tc-num">27</span>End call — POOR_CONNECTIVITY</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_end_unresponsive')" data-uuid="dca_vkyc_end_unresponsive"><span class="tc-num">28</span>End call — USER_UNRESPONSIVE</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_soft_reject')" data-uuid="dca_vkyc_soft_reject"><span class="tc-num">29</span>Soft reject — DOCUMENT_BLUR</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_hard_reject')" data-uuid="dca_vkyc_hard_reject"><span class="tc-num">30</span>Hard reject — DOCUMENT_UNCLEAR</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_hard_fraud')" data-uuid="dca_vkyc_hard_fraud"><span class="tc-num">31</span>Hard reject — SUSPECTED_FRAUD</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">Account creation (P0)</div>
-        <div class="tc-row" onclick="loadTest('dca_account_not_created')" data-uuid="dca_account_not_created"><span class="tc-num">13</span>Approved but Current Account not created</div>
+        <div class="tc-section-header">Review queues</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_audit')" data-uuid="dca_dedupe_audit"><span class="tc-num">32</span>Dedupe conflict at VKYC audit</div>
+        <div class="tc-row" onclick="loadTest('dca_auditor_later')" data-uuid="dca_auditor_later"><span class="tc-num">33</span>VKYC auditor — mark for later</div>
+        <div class="tc-row" onclick="loadTest('dca_auditor_rejected')" data-uuid="dca_auditor_rejected"><span class="tc-num">34</span>VKYC auditor — rejected</div>
+        <div class="tc-row" onclick="loadTest('dca_fia_stuck')" data-uuid="dca_fia_stuck"><span class="tc-num">35</span>FIA review — stuck 18 days</div>
+        <div class="tc-row" onclick="loadTest('dca_audit_declined')" data-uuid="dca_audit_declined"><span class="tc-num">36</span>Audit declined — CONCURRENT</div>
       </div>
       <div class="tc-group">
-        <div class="tc-section-header">Coverage — out-of-scope</div>
-        <div class="tc-row" onclick="loadTest('dca_edi_out_of_scope')" data-uuid="dca_edi_out_of_scope"><span class="tc-num">14</span>EDI-flagged application — not DCA</div>
+        <div class="tc-section-header">Post-review pipeline</div>
+        <div class="tc-row" onclick="loadTest('dca_risk_blocked')" data-uuid="dca_risk_blocked"><span class="tc-num">37</span>Risk blocked POLICY_DECLINED</div>
+        <div class="tc-row" onclick="loadTest('dca_fraud_pipeline')" data-uuid="dca_fraud_pipeline"><span class="tc-num">38</span>Fraud blocked WATCHLIST_HIT</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_pipeline')" data-uuid="dca_dedupe_pipeline"><span class="tc-num">39</span>Dedupe blocked DUPLICATE_RECORD</div>
+        <div class="tc-row" onclick="loadTest('dca_account_not_created')" data-uuid="dca_account_not_created"><span class="tc-num">40</span>Account creation failed</div>
+        <div class="tc-row" onclick="loadTest('dca_uid_pending')" data-uuid="dca_uid_pending"><span class="tc-num">41</span>UID pending — UPI_CC_LINK missing</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">DCA to EDI handoff</div>
+        <div class="tc-row" onclick="loadTest('dca_done_to_edi')" data-uuid="dca_done_to_edi"><span class="tc-num">42</span>DCA done, merchant lending</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">SIM binding</div>
+        <div class="tc-row" onclick="loadTest('dca_sim_dnd')" data-uuid="dca_sim_dnd"><span class="tc-num">43</span>SMS not delivered DND</div>
+        <div class="tc-row" onclick="loadTest('dca_sim_timeout')" data-uuid="dca_sim_timeout"><span class="tc-num">44</span>ETIMEDOUT (reuse #4)</div>
+        <div class="tc-row" onclick="loadTest('dca_integrity')" data-uuid="dca_integrity"><span class="tc-num">45</span>INTEGRITY_BREACH (reuse #5)</div>
+        <div class="tc-row" onclick="loadTest('dca_redflag_login')" data-uuid="dca_redflag_login"><span class="tc-num">46</span>RED_FLAG DEVICE_FRAUD (reuse #8)</div>
+        <div class="tc-row" onclick="loadTest('dca_sim_device_change')" data-uuid="dca_sim_device_change"><span class="tc-num">47</span>DEVICEID_MISS_MATCH</div>
+        <div class="tc-row" onclick="loadTest('dca_sim_fe_expired')" data-uuid="dca_sim_fe_expired"><span class="tc-num">48</span>FE_TIME_EXPIRED</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Journey reset</div>
+        <div class="tc-row" onclick="loadTest('dca_reset_wrong_pan')" data-uuid="dca_reset_wrong_pan"><span class="tc-num">49</span>Wrong PAN — ops reset Step 1</div>
+        <div class="tc-row" onclick="loadTest('dca_reset_vkyc_audit')" data-uuid="dca_reset_vkyc_audit"><span class="tc-num">50</span>VKYC audit-rejected — auto-reset Step 8</div>
+        <div class="tc-row" onclick="loadTest('dca_reset_blacklist')" data-uuid="dca_reset_blacklist"><span class="tc-num">51</span>Blacklist cleared — reset + escalate</div>
+        <div class="tc-row" onclick="loadTest('dca_reset_kyc_expired')" data-uuid="dca_reset_kyc_expired"><span class="tc-num">52</span>KYC expired — batch full reset</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — states</div>
+        <div class="tc-row" onclick="loadTest('dca_abandoned')" data-uuid="dca_abandoned"><span class="tc-num">53</span>Abandoned idle 70 days</div>
+        <div class="tc-row" onclick="loadTest('dca_fraud_flagged')" data-uuid="dca_fraud_flagged"><span class="tc-num">54</span>Fraud flagged not blocked</div>
+        <div class="tc-row" onclick="loadTest('dca_aml_pending')" data-uuid="dca_aml_pending"><span class="tc-num">55</span>AML pending</div>
+        <div class="tc-row" onclick="loadTest('dca_aml_match')" data-uuid="dca_aml_match"><span class="tc-num">56</span>AML possible match</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_vkyc')" data-uuid="dca_dedupe_vkyc"><span class="tc-num">57</span>Dedupe conflict at VKYC</div>
+        <div class="tc-row" onclick="loadTest('dca_post_vkyc_dedupe')" data-uuid="dca_post_vkyc_dedupe"><span class="tc-num">58</span>Post-VKYC dedupe fail</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — milestones</div>
+        <div class="tc-row" onclick="loadTest('dca_int_approved')" data-uuid="dca_int_approved"><span class="tc-num">59</span>Approved != Active INTERNAL_APPROVED</div>
+        <div class="tc-row" onclick="loadTest('dca_rejected_existing')" data-uuid="dca_rejected_existing"><span class="tc-num">60</span>Rejected existing savings</div>
+        <div class="tc-row" onclick="loadTest('dca_declined_no_rf')" data-uuid="dca_declined_no_rf"><span class="tc-num">61</span>Declined no red flags</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_auto_stuck')" data-uuid="dca_vkyc_auto_stuck"><span class="tc-num">62</span>VKYC AUTO approved downstream stuck</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_linkfail')" data-uuid="dca_vkyc_linkfail"><span class="tc-num">63</span>VKYC link generation failed</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_no_agents')" data-uuid="dca_vkyc_no_agents"><span class="tc-num">64</span>VKYC no agents/region</div>
+        <div class="tc-row" onclick="loadTest('dca_vkyc_timeout')" data-uuid="dca_vkyc_timeout"><span class="tc-num">65</span>VKYC timeout</div>
+        <div class="tc-row" onclick="loadTest('dca_ckyc_spike')" data-uuid="dca_ckyc_spike"><span class="tc-num">66</span>CKYC error spike</div>
+        <div class="tc-row" onclick="loadTest('dca_aadhaar_otp_fail')" data-uuid="dca_aadhaar_otp_fail"><span class="tc-num">67</span>Aadhaar OTP not received</div>
+        <div class="tc-row" onclick="loadTest('dca_aadhaar_epoch')" data-uuid="dca_aadhaar_epoch"><span class="tc-num">68</span>Aadhaar verifiedAt epoch</div>
+        <div class="tc-row" onclick="loadTest('dca_vd_addr_mismatch')" data-uuid="dca_vd_addr_mismatch"><span class="tc-num">69</span>Verify details address mismatch</div>
+        <div class="tc-row" onclick="loadTest('dca_vd_occupation')" data-uuid="dca_vd_occupation"><span class="tc-num">70</span>Verify details occupation conflict</div>
+        <div class="tc-row" onclick="loadTest('dca_post_vkyc_redflag')" data-uuid="dca_post_vkyc_redflag"><span class="tc-num">71</span>Post-VKYC redflag block</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — features</div>
+        <div class="tc-row" onclick="loadTest('dca_systemic_nsdl')" data-uuid="dca_systemic_nsdl"><span class="tc-num">72</span>Systemic NSDL 5xx spike</div>
+        <div class="tc-row" onclick="loadTest('dca_edi_out_of_scope')" data-uuid="dca_edi_out_of_scope"><span class="tc-num">73</span>Out of scope EDI</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">Coverage — dedupe</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_clear')" data-uuid="dca_dedupe_clear"><span class="tc-num">74</span>Dedupe clear at all checkpoints</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_pan_contact')" data-uuid="dca_dedupe_pan_contact"><span class="tc-num">75</span>Dedupe conflict at PAN phone+email</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_pre_cif')" data-uuid="dca_dedupe_pre_cif"><span class="tc-num">76</span>Dedupe conflict at pre-CIF</div>
+        <div class="tc-row" onclick="loadTest('dca_dedupe_many')" data-uuid="dca_dedupe_many"><span class="tc-num">77</span>Dedupe many candidates</div>
       </div>
     </div>
   </div>
@@ -665,6 +749,1413 @@ const USERS = {
     }],
   },
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW TEST CASES (15–77) — expanded to match DSA coverage
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── Happy path: CKYC not found → Aadhaar direct ──────────────────────────
+  dca_happy_aadhaar: {
+    uuid: "dca-happy-aadhaar-001", name: "Krishna Electronics (Krishna Murthy)",
+    phone: "98450 22334", email: "krishna.electronics@gmail.com",
+    applications: [{
+      id: "app_dca_hp2", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "Current Account active — Aadhaar route",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-02 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-07-30 09:10"},
+      gst: {status: "verified", ts: "2026-07-30 09:20"}, udyam: {status: "verified", ts: "2026-07-30 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-01 14:00"}, audit: null,
+      accountCreated: {status: "created", ts: "2026-08-02 14:00"}, redflagCount: 0,
+      amlStatus: {status: "verified", match: false, ts: "2026-07-30 09:12"},
+      steps: mkDcaSteps(14, {
+        "05": {ckycAadhaar: {path: "aadhaar", detail: "No CKYC data found — verified via Aadhaar directly"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-07-30 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-01 14:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}, {name: "Audit", status: "skip", reason: "not routed"}]}},
+        "13": {accountCreation: {nodes: [{name: "KYC", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Account", status: "pass"}]}}
+      }),
+      webhooks: [
+        {event: "flags: BUSINESS_DETAILS_SUBMITTED", status: "ok", time: "2026-07-30 09:30"},
+        {event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-01 14:00"},
+        {event: "user_states: KYC_APPROVED", status: "ok", time: "2026-08-02 10:00"},
+        {event: "user_states: CURRENT_ACCOUNT_CREATED", status: "ok", time: "2026-08-02 14:00"},
+      ],
+    }],
+  },
+
+  // ── Happy path: FIA triggered → resolved → active ─────────────────────────
+  dca_fia_resolved: {
+    uuid: "dca-fia-resolved-001", name: "Arjun Auto Parts (Arjun Reddy)",
+    phone: "98450 33445", email: "arjun.autoparts@gmail.com",
+    applications: [{
+      id: "app_dca_hp3", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "Current Account active — FIA cleared",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-05 16:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "FIA cleared after review", ts: "2026-08-04 11:00"},
+      gst: {status: "verified", ts: "2026-07-28 09:20"}, udyam: {status: "verified", ts: "2026-07-28 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-01 10:00"}, audit: null,
+      accountCreated: {status: "created", ts: "2026-08-05 16:00"}, redflagCount: 0,
+      manualReview: {status: "cleared", type: "fia", reason: "FIA triggered by address anomaly — cleared after docs", ts: "2026-08-04 11:00"},
+      steps: mkDcaSteps(14, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-07-30 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-01 10:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}, {name: "FIA", status: "pass", reason: "cleared"}]}},
+        "13": {accountCreation: {nodes: [{name: "KYC", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Account", status: "pass"}]}}
+      }),
+      webhooks: [
+        {event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-01 10:00 — APPROVED"},
+        {event: "FIA review cleared", status: "ok", time: "2026-08-04 11:00"},
+        {event: "user_states: CURRENT_ACCOUNT_CREATED", status: "ok", time: "2026-08-05 16:00"},
+      ],
+    }],
+  },
+
+  // ── Login failures ────────────────────────────────────────────────────────
+  dca_sim_timeout: {
+    uuid: "dca-sim-timeout-0001", name: "[Test] SIM Binding — ETIMEDOUT",
+    phone: "10100000004", email: "",
+    simBinding: {status: "failed", reason: "ETIMEDOUT", ts: "2026-08-05 09:15"},
+    applications: [{
+      id: "app_dca_t04", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — SIM binding failed",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:15",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      simBinding: {status: "failed", reason: "ETIMEDOUT", ts: "2026-08-05 09:15"},
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "SIM binding failed. Method: Kaleyra. Error: ETIMEDOUT.",
+          fields: [{v: "SIM binding: FAILED", bad: true}, {v: "Error: ETIMEDOUT", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_integrity: {
+    uuid: "dca-integrity-0001", name: "[Test] INTEGRITY_BREACH at login",
+    phone: "10100000005", email: "",
+    simBinding: {status: "failed", reason: "INTEGRITY_BREACH", ts: "2026-08-05 09:20"},
+    applications: [{
+      id: "app_dca_t05", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — integrity breach",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:20",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      simBinding: {status: "failed", reason: "INTEGRITY_BREACH", ts: "2026-08-05 09:20"},
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Device integrity check failed. Root/jailbreak or emulator detected.",
+          fields: [{v: "INTEGRITY_BREACH", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_blacklisted_login: {
+    uuid: "dca-blacklisted-login-001", name: "[Test] USER_BLACKLISTED at login",
+    phone: "10100000006", email: "",
+    applications: [{
+      id: "app_dca_t06", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked — user blacklisted",
+      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:25",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "USER_BLACKLISTED — phone in fraud watchlist", ts: "2026-08-05 09:25"},
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "User blacklisted at login. Fraud API returned USER_BLACKLISTED.",
+          fields: [{v: "USER_BLACKLISTED", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_creditfreeze_login: {
+    uuid: "dca-creditfreeze-login-001", name: "[Test] CREDITFREEZE at login",
+    phone: "10100000007", email: "",
+    applications: [{
+      id: "app_dca_t07", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — credit freeze",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:30",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: {status: "flagged", reason: "CREDITFREEZE — bureau shows credit freeze on this PAN", ts: "2026-08-05 09:30"},
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Credit freeze detected. User must lift freeze with bureau before proceeding.",
+          fields: [{v: "CREDITFREEZE", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_redflag_login: {
+    uuid: "dca-redflag-login-001", name: "[Test] RED_FLAG DEVICE_FRAUD at login",
+    phone: "10100000008", email: "",
+    applications: [{
+      id: "app_dca_t08", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked — device fraud",
+      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:35",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "RED_FLAG DEVICE_FRAUD — device associated with multiple fraud cases", ts: "2026-08-05 09:35"},
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Device flagged for fraud. RED_FLAG DEVICE_FRAUD.",
+          fields: [{v: "DEVICE_FRAUD", bad: true}, {v: "RED_FLAG", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── PAN verification ──────────────────────────────────────────────────────
+  dca_dedupe_pan: {
+    uuid: "dca-dedupe-pan-001", name: "[Test] Dedupe block — duplicate PAN",
+    phone: "10100000010", email: "test.dedupe.pan@slice.in",
+    applications: [{
+      id: "app_dca_t10", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at PAN — dedupe block",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "PAN already used by another merchant. Dedupe block.",
+          fields: [{v: "PAN: ABCDE1234F", warn: true}, {v: "Dedupe: CONFLICT", bad: true}],
+          dedupeBlock: {blocked: true, duplicateUUID: "existing-uuid-pan-match", duplicateStatus: "APPROVED", reasonLabel: "PAN match", product: "DCA"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_nsdl_false_neg: {
+    uuid: "dca-nsdl-false-neg-001", name: "[Test] NSDL false negative",
+    phone: "10100000011", email: "test.nsdl.falsenegative@slice.in",
+    applications: [{
+      id: "app_dca_t11", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at PAN — NSDL returned invalid but PAN is valid",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:10",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "NSDL returned PAN_NOT_FOUND but the PAN is valid. Known NSDL intermittent issue.",
+          fields: [{v: "NSDL: PAN_NOT_FOUND", bad: true}, {v: "Likely false negative", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_nsdl_name_mismatch: {
+    uuid: "dca-nsdl-name-mismatch-001", name: "[Test] NSDL name mismatch",
+    phone: "10100000012", email: "test.nsdl.namemismatch@slice.in",
+    applications: [{
+      id: "app_dca_t12", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at PAN — name mismatch",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:15",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "NSDL name does not match entered name. User entered: RAJESH KUMAR, NSDL returned: RAJESH KUMAR SINGH.",
+          fields: [{v: "Name mismatch", warn: true}, {v: "NSDL: RAJESH KUMAR SINGH", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_nsdl_5xx: {
+    uuid: "dca-nsdl-5xx-001", name: "[Test] NSDL 5xx spike",
+    phone: "10100000013", email: "test.nsdl.5xx@slice.in",
+    applications: [{
+      id: "app_dca_t13", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at PAN — NSDL 5xx",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:20",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "NSDL returned HTTP 503. Service temporarily unavailable. Systemic issue.",
+          fields: [{v: "NSDL: 503", bad: true}, {v: "Systemic", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── CKYC / Aadhaar ────────────────────────────────────────────────────────
+  dca_ckyc_otp_fail: {
+    uuid: "dca-ckyc-otp-fail-001", name: "[Test] CKYC OTP not received",
+    phone: "10100000014", email: "test.ckyc.otpfail@slice.in",
+    applications: [{
+      id: "app_dca_t14", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — OTP not received",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:00",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "CKYC found but OTP never arrived. 3 attempts exhausted. Sarsai provider issue.",
+          fields: [{v: "CKYC OTP: NOT RECEIVED", bad: true}, {v: "Attempts: 3/3", bad: true}],
+          ckycAadhaar: {path: "ckyc", detail: "OTP delivery failed after 3 attempts"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_ckr_push_missing: {
+    uuid: "dca-ckr-push-missing-001", name: "[Test] ckr-push not received",
+    phone: "10100000015", email: "test.ckr.push@slice.in",
+    applications: [{
+      id: "app_dca_t15", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — ckr-push missing",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:10",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "CKYC OTP verified but ckr-push callback not received. Data not populated.",
+          fields: [{v: "ckr-push: MISSING", bad: true}],
+          ckycAadhaar: {path: "ckyc", detail: "OTP verified but ckr-push callback not received from Sarsai"}}
+      }),
+      webhooks: [{event: "ckr-push callback", status: "err", time: "Expected ~2026-08-06 11:05 — never arrived"}],
+    }],
+  },
+
+  dca_aadhaar_vendor_down: {
+    uuid: "dca-aadhaar-vendor-down-001", name: "[Test] Aadhaar vendor down 503",
+    phone: "10100000016", email: "test.aadhaar.vendor@slice.in",
+    applications: [{
+      id: "app_dca_t16", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Aadhaar — vendor 503",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:20",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "Aadhaar verification vendor (Digio) returned 503. Service temporarily unavailable.",
+          fields: [{v: "Aadhaar vendor: 503", bad: true}],
+          ckycAadhaar: {path: "aadhaar", detail: "Vendor returned HTTP 503 — systemic outage"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_addr_proof_missing: {
+    uuid: "dca-addr-proof-missing-001", name: "[Test] addressProof missing",
+    phone: "10100000017", email: "test.addr.proof@slice.in",
+    applications: [{
+      id: "app_dca_t17", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — addressProof missing",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:30",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "CKYC data received but addressProof field is empty/null. Cannot proceed.",
+          fields: [{v: "addressProof: MISSING", bad: true}],
+          ckycAadhaar: {path: "ckyc", detail: "CKYC data OK but addressProof field is empty"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_poa_na: {
+    uuid: "dca-poa-na-001", name: "[Test] POA Type = N/A",
+    phone: "10100000018", email: "test.poa.na@slice.in",
+    applications: [{
+      id: "app_dca_t18", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — POA type N/A",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:40",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "CKYC data has POA (Proof of Address) type = N/A. Address verification cannot proceed.",
+          fields: [{v: "POA Type: N/A", bad: true}],
+          ckycAadhaar: {path: "ckyc", detail: "POA type returned as N/A — cannot verify address"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_id_name_mismatch: {
+    uuid: "dca-id-name-mismatch-001", name: "[Test] ID name != address name",
+    phone: "10100000019", email: "test.id.name@slice.in",
+    applications: [{
+      id: "app_dca_t19", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — name mismatch",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 11:50",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "Name on ID proof does not match name on address proof. ID: SURESH PATEL, Address: SURESH KUMAR PATEL.",
+          fields: [{v: "ID name: SURESH PATEL", warn: true}, {v: "Address name: SURESH KUMAR PATEL", warn: true}],
+          ckycAadhaar: {path: "ckyc", detail: "Name mismatch between ID and address proof"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Fraud blocks ──────────────────────────────────────────────────────────
+  dca_fraud_soft_vd: {
+    uuid: "dca-fraud-soft-vd-001", name: "[Test] Fraud soft block at verify details",
+    phone: "10100000023", email: "test.fraud.soft@slice.in",
+    applications: [{
+      id: "app_dca_t23", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Verify Details — fraud soft block",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "flagged", reason: "Soft fraud block — address anomaly detected", ts: "2026-08-06 14:00"},
+      gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Fraud soft block triggered at verify details. Address anomaly detected.",
+          fields: [{v: "Fraud: SOFT BLOCK", warn: true}],
+          fraudBlock: {blocked: true, blockType: "SOFT", reason: "ADDRESS_ANOMALY", trigger: "verify_details"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_fraud_hard_vd: {
+    uuid: "dca-fraud-hard-vd-001", name: "[Test] Fraud hard block at verify details",
+    phone: "10100000024", email: "test.fraud.hard@slice.in",
+    applications: [{
+      id: "app_dca_t24", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked at Verify Details — fraud hard block",
+      state: "REJECTED", currentStep: 8, updatedAt: "2026-08-06 14:10",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "Hard fraud block — WATCHLIST_MATCH", ts: "2026-08-06 14:10"},
+      gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Fraud hard block triggered at verify details. WATCHLIST_MATCH.",
+          fields: [{v: "Fraud: HARD BLOCK", bad: true}],
+          fraudBlock: {blocked: true, blockType: "HARD", reason: "WATCHLIST_MATCH", trigger: "verify_details"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_post_vkyc_fraud_hard: {
+    uuid: "dca-post-vkyc-fraud-hard-001", name: "[Test] Post-VKYC hard block",
+    phone: "10100000026", email: "test.postvkyc.fraud@slice.in",
+    applications: [{
+      id: "app_dca_t26", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked post-VKYC — fraud hard block",
+      state: "REJECTED", currentStep: 11, updatedAt: "2026-08-07 10:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "Post-VKYC fraud block — WATCHLIST_HIT", ts: "2026-08-07 10:00"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {status: "stuck", detail: "Post-VKYC fraud block triggered. WATCHLIST_HIT.",
+          fields: [{v: "Post-VKYC: HARD BLOCK", bad: true}],
+          fraudBlockPost: {blocked: true, blockType: "HARD", reason: "WATCHLIST_HIT"},
+          postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "fail", reason: "WATCHLIST_HIT"}]}}
+      }),
+      webhooks: [
+        {event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 15:00 — APPROVED"},
+      ],
+    }],
+  },
+
+  // ── VKYC agent actions ────────────────────────────────────────────────────
+  dca_vkyc_end_call: {
+    uuid: "dca-vkyc-endcall-001", name: "[Test] VKYC End Call — POOR_CONNECTIVITY",
+    phone: "10100000027", email: "test.vkyc.endcall@slice.in",
+    applications: [{
+      id: "app_dca_t27", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC ended by agent — POOR_CONNECTIVITY",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 17:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:30"}, udyam: {status: "verified", ts: "2026-08-04 09:28"},
+      vkyc: {status: "PENDING", ts: "2026-08-06 17:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "Agent ended the call. Reason: POOR_CONNECTIVITY. 1/3 attempts used.",
+          fields: [{v: "Status: END_CALL", warn: true}, {v: "Attempts: 1/3", warn: true}],
+          vkycAgent: {action: "END_CALL", reason: "POOR_CONNECTIVITY"},
+          vkycOutcome: {status: "PENDING", ts: "2026-08-06 17:00"}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 17:00 — END_CALL"}],
+    }],
+  },
+
+  dca_vkyc_end_unresponsive: {
+    uuid: "dca-vkyc-end-unresponsive-001", name: "[Test] VKYC End Call — USER_UNRESPONSIVE",
+    phone: "10100000028", email: "test.vkyc.unresponsive@slice.in",
+    applications: [{
+      id: "app_dca_t28", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC ended by agent — USER_UNRESPONSIVE",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 17:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:30"}, udyam: {status: "verified", ts: "2026-08-04 09:28"},
+      vkyc: {status: "PENDING", ts: "2026-08-06 17:30"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "Agent ended the call. Reason: USER_UNRESPONSIVE. 2/3 attempts used.",
+          fields: [{v: "Status: END_CALL", warn: true}, {v: "Reason: USER_UNRESPONSIVE", warn: true}, {v: "Attempts: 2/3", warn: true}],
+          vkycAgent: {action: "END_CALL", reason: "USER_UNRESPONSIVE"},
+          vkycOutcome: {status: "PENDING", ts: "2026-08-06 17:30"}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 17:30 — END_CALL"}],
+    }],
+  },
+
+  dca_vkyc_soft_reject: {
+    uuid: "dca-vkyc-soft-reject-001", name: "[Test] VKYC Soft Reject — DOCUMENT_BLUR",
+    phone: "10100000029", email: "test.vkyc.softreject@slice.in",
+    applications: [{
+      id: "app_dca_t29", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC soft reject — DOCUMENT_BLUR",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 18:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:30"}, udyam: {status: "verified", ts: "2026-08-04 09:28"},
+      vkyc: {status: "PENDING", ts: "2026-08-06 18:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "VKYC agent soft-rejected. Reason: DOCUMENT_BLUR. User can retry.",
+          fields: [{v: "VKYC: SOFT REJECT", warn: true}],
+          vkycAgent: {action: "REJECTED", rejectType: "SOFT", reason: "DOCUMENT_BLUR", confirmationDone: true},
+          vkycOutcome: {status: "PENDING", ts: "2026-08-06 18:00"}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 18:00 — REJECTED (SOFT)"}],
+    }],
+  },
+
+  dca_vkyc_hard_reject: {
+    uuid: "dca-vkyc-hard-reject-001", name: "[Test] VKYC Hard Reject — DOCUMENT_UNCLEAR",
+    phone: "10100000030", email: "test.vkyc.hardreject@slice.in",
+    applications: [{
+      id: "app_dca_t30", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "VKYC hard reject — DOCUMENT_UNCLEAR",
+      state: "REJECTED", currentStep: 10, updatedAt: "2026-08-06 18:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:30"}, udyam: {status: "verified", ts: "2026-08-04 09:28"},
+      vkyc: {status: "REJECTED", rejectionReason: "DOCUMENT_UNCLEAR", ts: "2026-08-06 18:30"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "VKYC agent hard-rejected. Reason: DOCUMENT_UNCLEAR. Journey blocked.",
+          fields: [{v: "VKYC: HARD REJECT", bad: true}],
+          vkycAgent: {action: "REJECTED", rejectType: "HARD", reason: "DOCUMENT_UNCLEAR", confirmationDone: true},
+          vkycOutcome: {status: "REJECTED", rejectionReason: "DOCUMENT_UNCLEAR", ts: "2026-08-06 18:30"}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 18:30 — REJECTED (HARD)"}],
+    }],
+  },
+
+  dca_vkyc_hard_fraud: {
+    uuid: "dca-vkyc-hard-fraud-001", name: "[Test] VKYC Hard Reject — SUSPECTED_FRAUD",
+    phone: "10100000031", email: "test.vkyc.hardfraud@slice.in",
+    applications: [{
+      id: "app_dca_t31", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "VKYC hard reject — SUSPECTED_FRAUD",
+      state: "REJECTED", currentStep: 10, updatedAt: "2026-08-06 19:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "SUSPECTED_FRAUD during VKYC", ts: "2026-08-06 19:00"},
+      gst: {status: "verified", ts: "2026-08-04 09:30"}, udyam: {status: "verified", ts: "2026-08-04 09:28"},
+      vkyc: {status: "REJECTED", rejectionReason: "SUSPECTED_FRAUD", ts: "2026-08-06 19:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "VKYC agent hard-rejected for SUSPECTED_FRAUD. Journey blocked, escalated to fraud.",
+          fields: [{v: "VKYC: SUSPECTED_FRAUD", bad: true}],
+          vkycAgent: {action: "REJECTED", rejectType: "HARD", reason: "SUSPECTED_FRAUD", confirmationDone: true},
+          vkycOutcome: {status: "REJECTED", rejectionReason: "SUSPECTED_FRAUD", ts: "2026-08-06 19:00"}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 19:00 — REJECTED (HARD/FRAUD)"}],
+    }],
+  },
+
+  // ── Review queues ─────────────────────────────────────────────────────────
+  dca_dedupe_audit: {
+    uuid: "dca-dedupe-audit-001", name: "[Test] Dedupe conflict at VKYC audit",
+    phone: "10100000032", email: "test.dedupe.audit@slice.in",
+    applications: [{
+      id: "app_dca_t32", type: "dca_onboarding", label: "DCA",
+      status: "review", overallLabel: "In audit review — dedupe conflict",
+      state: "PENDING", currentStep: 11, updatedAt: "2026-08-07 11:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "dedupe_conflict", reason: "Dedupe conflict found during VKYC audit", ts: "2026-08-07 11:00"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"},
+      audit: {status: "under_review", ts: "2026-08-07 11:00"},
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {status: "stuck", detail: "Dedupe conflict found during VKYC audit. Under review.",
+          postVkycPipeline: {checks: [{name: "Dedupe", status: "fail", reason: "PAN match"}, {name: "Audit", status: "pending"}]},
+          dedupe: {status: "conflict", matchedUUIDs: ["existing-uuid-dedupe-audit"], matchedOn: ["PAN"]}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 15:00 — APPROVED"}],
+    }],
+  },
+
+  dca_auditor_later: {
+    uuid: "dca-auditor-later-001", name: "[Test] VKYC auditor — mark for later",
+    phone: "10100000033", email: "test.auditor.later@slice.in",
+    applications: [{
+      id: "app_dca_t33", type: "dca_onboarding", label: "DCA",
+      status: "review", overallLabel: "In audit review — marked for later",
+      state: "PENDING", currentStep: 11, updatedAt: "2026-08-07 12:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"},
+      audit: {status: "under_review", ts: "2026-08-07 12:00"},
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {status: "stuck", detail: "Auditor marked for later. Pending re-review.",
+          reviewOutcome: {outcome: "mark_for_later", reason: "Need additional documents", ts: "2026-08-07 12:00"},
+          postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Audit", status: "pending", reason: "mark_for_later"}]}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 15:00 — APPROVED"}],
+    }],
+  },
+
+  dca_auditor_rejected: {
+    uuid: "dca-auditor-rejected-001", name: "[Test] VKYC auditor — rejected",
+    phone: "10100000034", email: "test.auditor.rejected@slice.in",
+    applications: [{
+      id: "app_dca_t34", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Audit rejected",
+      state: "REJECTED", currentStep: 11, updatedAt: "2026-08-07 13:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "audit_declined", reason: "Auditor rejected — face mismatch", ts: "2026-08-07 13:00"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"},
+      audit: {status: "declined", reason: "Face mismatch between VKYC and Aadhaar photo", ts: "2026-08-07 13:00"},
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {status: "stuck", detail: "Auditor rejected. Face mismatch.",
+          reviewOutcome: {outcome: "rejected", reason: "Face mismatch between VKYC and Aadhaar photo", ts: "2026-08-07 13:00"},
+          postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Audit", status: "fail", reason: "rejected"}]}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 15:00 — APPROVED"}],
+    }],
+  },
+
+  dca_fia_stuck: {
+    uuid: "dca-fia-stuck-001", name: "[Test] FIA review — stuck 18 days",
+    phone: "10100000035", email: "test.fia.stuck@slice.in",
+    applications: [{
+      id: "app_dca_t35", type: "dca_onboarding", label: "DCA",
+      status: "review", overallLabel: "In FIA review — stuck 18 days",
+      state: "PENDING", currentStep: 11, updatedAt: "2026-07-27 09:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-07-25 09:50"},
+      gst: {status: "verified", ts: "2026-07-24 09:20"}, udyam: {status: "verified", ts: "2026-07-24 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-07-26 15:00"},
+      audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      manualReview: {status: "under_review", type: "fia", reason: "FIA triggered — address anomaly. Under review since 18 days.", ts: "2026-07-27 09:00"},
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-07-25 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-07-26 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {status: "stuck", detail: "FIA review triggered. Stuck for 18 days. No update.",
+          reviewOutcome: {outcome: "pending", reason: "FIA review — no update for 18 days", ts: "2026-07-27 09:00"},
+          postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "FIA", status: "pending", reason: "under review 18 days"}]}}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-07-26 15:00 — APPROVED"}],
+    }],
+  },
+
+  // ── Post-review pipeline ──────────────────────────────────────────────────
+  dca_risk_blocked: {
+    uuid: "dca-risk-blocked-001", name: "[Test] Risk blocked POLICY_DECLINED",
+    phone: "10100000037", email: "test.risk.blocked@slice.in",
+    applications: [{
+      id: "app_dca_t37", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked — risk declined",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-08 10:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      riskDecision: {status: "declined", reason: "POLICY_DECLINED", ts: "2026-08-08 10:00"},
+      steps: mkDcaSteps(12, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}, {name: "Audit", status: "skip"}]}},
+        "12": {status: "stuck", detail: "Risk engine declined. POLICY_DECLINED.",
+          fields: [{v: "Risk: POLICY_DECLINED", bad: true}],
+          pipeline: [{name: "Risk", status: "blocked", reason: "POLICY_DECLINED"}]}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-06 15:00 — APPROVED"}],
+    }],
+  },
+
+  dca_fraud_pipeline: {
+    uuid: "dca-fraud-pipeline-001", name: "[Test] Fraud blocked WATCHLIST_HIT",
+    phone: "10100000038", email: "test.fraud.pipeline@slice.in",
+    applications: [{
+      id: "app_dca_t38", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked — fraud pipeline",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-08 10:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "WATCHLIST_HIT in post-review pipeline", ts: "2026-08-08 10:30"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(12, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "12": {status: "stuck", detail: "Fraud blocked in post-review pipeline. WATCHLIST_HIT.",
+          fields: [{v: "Fraud: WATCHLIST_HIT", bad: true}],
+          pipeline: [{name: "Risk", status: "pass"}, {name: "Fraud", status: "blocked", reason: "WATCHLIST_HIT"}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_dedupe_pipeline: {
+    uuid: "dca-dedupe-pipeline-001", name: "[Test] Dedupe blocked DUPLICATE_RECORD",
+    phone: "10100000039", email: "test.dedupe.pipeline@slice.in",
+    applications: [{
+      id: "app_dca_t39", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Blocked — dedupe pipeline",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-08 11:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(12, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "12": {status: "stuck", detail: "Dedupe blocked in post-review pipeline. DUPLICATE_RECORD.",
+          fields: [{v: "Dedupe: DUPLICATE_RECORD", bad: true}],
+          pipeline: [{name: "Risk", status: "pass"}, {name: "Fraud", status: "pass"}, {name: "Dedupe", status: "blocked", reason: "DUPLICATE_RECORD"}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_uid_pending: {
+    uuid: "dca-uid-pending-001", name: "[Test] UID pending — UPI_CC_LINK missing",
+    phone: "10100000041", email: "test.uid.pending@slice.in",
+    applications: [{
+      id: "app_dca_t41", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Account approved but UID pending",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-09 10:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_created", reason: "UPI_CC_LINK missing"}, redflagCount: 0,
+      steps: mkDcaSteps(13, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "13": {status: "stuck", detail: "Account approved but UID pending. UPI_CC_LINK step not completed.",
+          fields: [{v: "UID: PENDING", warn: true}, {v: "UPI_CC_LINK: MISSING", bad: true}],
+          accountCreation: {nodes: [{name: "KYC", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Account", status: "pass"}, {name: "UID", status: "pending"}]}}
+      }),
+      webhooks: [{event: "user_states: KYC_APPROVED", status: "ok", time: "2026-08-08 10:00"}],
+    }],
+  },
+
+  // ── DCA -> EDI handoff ────────────────────────────────────────────────────
+  dca_done_to_edi: {
+    uuid: "dca-done-to-edi-001", name: "Laxmi Steel Works (Laxmi Narayan)",
+    phone: "98450 77889", email: "laxmi.steelworks@gmail.com",
+    applications: [{
+      id: "app_dca_edi1", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "Current Account active — EDI eligible",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-07-25 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-07-20 09:50"},
+      gst: {status: "verified", ts: "2026-07-20 09:20"}, udyam: {status: "verified", ts: "2026-07-20 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-07-22 14:00"}, audit: null,
+      accountCreated: {status: "created", ts: "2026-07-25 14:00"}, redflagCount: 0,
+      steps: mkDcaSteps(14, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-07-20 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-07-22 14:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "13": {accountCreation: {nodes: [{name: "KYC", status: "pass"}, {name: "Account", status: "pass"}]}}
+      }),
+      webhooks: [
+        {event: "user_states: CURRENT_ACCOUNT_CREATED", status: "ok", time: "2026-07-25 14:00"},
+        {event: "EDI eligibility check", status: "ok", time: "2026-07-26 — merchant lending eligible"},
+      ],
+    }],
+  },
+
+  // ── SIM binding variants ──────────────────────────────────────────────────
+  dca_sim_dnd: {
+    uuid: "dca-sim-dnd-001", name: "[Test] SIM binding — SMS not delivered DND",
+    phone: "10100000043", email: "",
+    simBinding: {status: "failed", reason: "SMS_NOT_DELIVERED_DND", ts: "2026-08-05 09:40"},
+    applications: [{
+      id: "app_dca_t43", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — SIM DND block",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:40",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      simBinding: {status: "failed", reason: "SMS_NOT_DELIVERED_DND", ts: "2026-08-05 09:40"},
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "SIM binding failed. DND active on this number.",
+          fields: [{v: "SIM: DND BLOCKED", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_sim_device_change: {
+    uuid: "dca-sim-device-change-001", name: "[Test] SIM binding — DEVICEID_MISS_MATCH",
+    phone: "10100000047", email: "",
+    simBinding: {status: "failed", reason: "DEVICEID_MISS_MATCH", ts: "2026-08-05 10:00"},
+    applications: [{
+      id: "app_dca_t47", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — device ID mismatch",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 10:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      simBinding: {status: "failed", reason: "DEVICEID_MISS_MATCH", ts: "2026-08-05 10:00"},
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "SIM binding failed. Device ID does not match. User may have switched devices.",
+          fields: [{v: "DEVICEID_MISS_MATCH", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_sim_fe_expired: {
+    uuid: "dca-sim-fe-expired-001", name: "[Test] SIM binding — FE_TIME_EXPIRED",
+    phone: "10100000048", email: "",
+    simBinding: {status: "failed", reason: "FE_TIME_EXPIRED", ts: "2026-08-05 10:10"},
+    applications: [{
+      id: "app_dca_t48", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at TnC — FE time expired",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 10:10",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      simBinding: {status: "failed", reason: "FE_TIME_EXPIRED", ts: "2026-08-05 10:10"},
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "SIM binding failed. Frontend timer expired before SMS was received.",
+          fields: [{v: "FE_TIME_EXPIRED", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Journey reset ─────────────────────────────────────────────────────────
+  dca_reset_wrong_pan: {
+    uuid: "dca-reset-wrong-pan-001", name: "[Test] Wrong PAN — ops reset Step 1",
+    phone: "10100000049", email: "test.reset.pan@slice.in",
+    applications: [{
+      id: "app_dca_t49", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Journey reset — wrong PAN entered",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-09 14:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Ops reset to Step 1. User entered wrong PAN initially.",
+          fields: [{v: "Reset by: Ops", warn: true}],
+          resetNote: "User entered partner's PAN instead of own. Ops reset journey to TnC."},
+        "02": {status: "reset", detail: "Reset — was completed with wrong PAN"},
+        "03": {status: "reset", detail: "Reset"},
+        "04": {status: "reset", detail: "Reset"},
+        "05": {status: "reset", detail: "Reset"},
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_reset_vkyc_audit: {
+    uuid: "dca-reset-vkyc-audit-001", name: "[Test] VKYC audit-rejected — auto-reset Step 8",
+    phone: "10100000050", email: "test.reset.vkyc@slice.in",
+    applications: [{
+      id: "app_dca_t50", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Journey reset — VKYC audit rejected",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-09 15:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Auto-reset to Step 8 after VKYC audit rejection. User must redo verify details.",
+          fields: [{v: "Auto-reset", warn: true}],
+          resetNote: "VKYC auditor rejected — auto-reset to Verify Details for re-submission."},
+        "09": {status: "reset", detail: "Reset — was cleared pre-VKYC"},
+        "10": {status: "reset", detail: "Reset — was APPROVED then audit-rejected"},
+        "11": {status: "reset", detail: "Reset"},
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_reset_blacklist: {
+    uuid: "dca-reset-blacklist-001", name: "[Test] Blacklist cleared — reset + escalate",
+    phone: "10100000051", email: "test.reset.blacklist@slice.in",
+    applications: [{
+      id: "app_dca_t51", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Journey reset — blacklist cleared",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-10 10:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "Blacklist cleared by fraud team", ts: "2026-08-10 10:00"},
+      gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Full reset after blacklist was cleared. User was previously blocked at login.",
+          fields: [{v: "Blacklist: CLEARED", ok: true}, {v: "Reset: FULL", warn: true}],
+          resetNote: "User was blacklisted at login. Fraud team cleared the blacklist. Full journey reset to TnC."}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_reset_kyc_expired: {
+    uuid: "dca-reset-kyc-expired-001", name: "[Test] KYC expired — batch full reset",
+    phone: "10100000052", email: "test.reset.kyc@slice.in",
+    applications: [{
+      id: "app_dca_t52", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Journey reset — KYC expired",
+      state: "PENDING", currentStep: 1, updatedAt: "2026-08-10 12:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(1, {
+        "01": {status: "stuck", detail: "Batch full reset. KYC documents expired (>60 days since VKYC approval without account creation).",
+          fields: [{v: "KYC: EXPIRED", bad: true}, {v: "Batch reset", warn: true}],
+          resetNote: "KYC expired — 60+ days since VKYC approval without account creation. Batch job reset entire journey."}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Coverage — states ─────────────────────────────────────────────────────
+  dca_abandoned: {
+    uuid: "dca-abandoned-001", name: "[Test] Abandoned idle 70 days",
+    phone: "10100000053", email: "test.abandoned@slice.in",
+    applications: [{
+      id: "app_dca_t53", type: "dca_onboarding", label: "DCA",
+      status: "abandoned", overallLabel: "Abandoned — idle 70 days",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-06-05 09:00",
+      idleDays: 70,
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(3, {
+        "03": {status: "stuck", detail: "Last activity 70 days ago at Business Details. No user action since."}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_fraud_flagged: {
+    uuid: "dca-fraud-flagged-001", name: "[Test] Fraud flagged not blocked",
+    phone: "10100000054", email: "test.fraud.flagged@slice.in",
+    applications: [{
+      id: "app_dca_t54", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Fraud flagged — not blocked",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 14:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "flagged", reason: "Minor anomaly flagged but not blocking", ts: "2026-08-06 14:30"},
+      gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 1,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Fraud flagged but not blocked. Minor anomaly.",
+          fields: [{v: "Fraud: FLAGGED", warn: true}, {v: "Not blocked", ok: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_aml_pending: {
+    uuid: "dca-aml-pending-001", name: "[Test] AML pending",
+    phone: "10100000055", email: "test.aml.pending@slice.in",
+    applications: [{
+      id: "app_dca_t55", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "AML check pending",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 15:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:50"},
+      gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      amlStatus: {status: "pending", match: false, ts: "2026-08-06 15:00"},
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "AML screening has not completed.",
+          fields: [{v: "AML: PENDING", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_aml_match: {
+    uuid: "dca-aml-match-001", name: "[Test] AML possible match",
+    phone: "10100000056", email: "test.aml.match@slice.in",
+    applications: [{
+      id: "app_dca_t56", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "AML possible match — manual verification needed",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 15:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-05 09:50"},
+      gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      amlStatus: {status: "verified", match: true, reason: "Possible name match with PEP list entry", ts: "2026-08-06 15:30"},
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "AML screening found a possible match. Manual verification required.",
+          fields: [{v: "AML: POSSIBLE MATCH", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_dedupe_vkyc: {
+    uuid: "dca-dedupe-vkyc-001", name: "[Test] Dedupe conflict at VKYC",
+    phone: "10100000057", email: "test.dedupe.vkyc@slice.in",
+    applications: [{
+      id: "app_dca_t57", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Dedupe conflict at VKYC step",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 16:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "PENDING", ts: "2026-08-06 16:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "Dedupe conflict found at VKYC. Matching user exists.",
+          fields: [{v: "Dedupe: CONFLICT", bad: true}],
+          dedupe: {status: "conflict", matchedUUIDs: ["existing-uuid-vkyc-dedupe"], matchedOn: ["PAN", "phone"]}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Coverage — milestones ─────────────────────────────────────────────────
+  dca_int_approved: {
+    uuid: "dca-int-approved-001", name: "[Test] Approved != Active INTERNAL_APPROVED",
+    phone: "10100000059", email: "test.int.approved@slice.in",
+    applications: [{
+      id: "app_dca_t59", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "INTERNAL_APPROVED but not active",
+      state: "INTERNAL_APPROVED", currentStep: 13, updatedAt: "2026-08-09 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_created"}, redflagCount: 0,
+      steps: mkDcaSteps(13, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "13": {status: "stuck", detail: "INTERNAL_APPROVED but account not created. Status mismatch.",
+          fields: [{v: "State: INTERNAL_APPROVED", warn: true}, {v: "Account: NOT CREATED", bad: true}]}
+      }),
+      webhooks: [{event: "user_states: KYC_APPROVED", status: "ok", time: "2026-08-08 10:00"}],
+    }],
+  },
+
+  dca_rejected_existing: {
+    uuid: "dca-rejected-existing-001", name: "[Test] Rejected existing savings",
+    phone: "10100000060", email: "test.rejected.existing@slice.in",
+    applications: [{
+      id: "app_dca_t60", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Rejected — existing savings account",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-09 15:00",
+      rejectionReason: "EXISTING_SAVINGS_ACCOUNT",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(12, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "12": {status: "stuck", detail: "Rejected — user already has a savings account.",
+          fields: [{v: "EXISTING_SAVINGS_ACCOUNT", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_declined_no_rf: {
+    uuid: "dca-declined-no-rf-001", name: "[Test] Declined no red flags",
+    phone: "10100000061", email: "test.declined.norf@slice.in",
+    applications: [{
+      id: "app_dca_t61", type: "dca_onboarding", label: "DCA",
+      status: "blocked", overallLabel: "Rejected — no red flags found",
+      state: "REJECTED", currentStep: 12, updatedAt: "2026-08-09 16:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(12, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "12": {status: "stuck", detail: "Rejected but no red flags found. Flag for investigation.",
+          fields: [{v: "State: REJECTED", bad: true}, {v: "Red flags: 0", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_vkyc_auto_stuck: {
+    uuid: "dca-vkyc-auto-stuck-001", name: "[Test] VKYC AUTO approved downstream stuck",
+    phone: "10100000062", email: "test.vkyc.auto@slice.in",
+    applications: [{
+      id: "app_dca_t62", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC AUTO approved but downstream stuck",
+      state: "PENDING", currentStep: 11, updatedAt: "2026-08-07 10:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-07 08:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(11, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-07 08:00"}, detail: "VKYC auto-approved (AUTO flow).",
+          fields: [{v: "VKYC: AUTO APPROVED", ok: true}]},
+        "11": {status: "stuck", detail: "Post-VKYC checks not progressing. Stuck after AUTO approval.",
+          fields: [{v: "Post-VKYC: STUCK", bad: true}]}
+      }),
+      webhooks: [{event: "vkyc_details row (product_flow=15)", status: "ok", time: "2026-08-07 08:00 — AUTO APPROVED"}],
+    }],
+  },
+
+  dca_vkyc_linkfail: {
+    uuid: "dca-vkyc-linkfail-001", name: "[Test] VKYC link generation failed",
+    phone: "10100000063", email: "test.vkyc.linkfail@slice.in",
+    applications: [{
+      id: "app_dca_t63", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC link generation failed",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 16:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "LINK_FAILED", ts: "2026-08-06 16:30"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "VKYC link generation failed. Service error.",
+          fields: [{v: "VKYC: LINK_FAILED", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_vkyc_no_agents: {
+    uuid: "dca-vkyc-no-agents-001", name: "[Test] VKYC no agents/region",
+    phone: "10100000064", email: "test.vkyc.noagents@slice.in",
+    applications: [{
+      id: "app_dca_t64", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC — no agents available",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 17:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "NO_AGENTS", ts: "2026-08-06 17:00"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "No VKYC agents available in this region. User must retry later.",
+          fields: [{v: "VKYC: NO AGENTS", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_vkyc_timeout: {
+    uuid: "dca-vkyc-timeout-001", name: "[Test] VKYC timeout",
+    phone: "10100000065", email: "test.vkyc.timeout@slice.in",
+    applications: [{
+      id: "app_dca_t65", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "VKYC — session timed out",
+      state: "PENDING", currentStep: 10, updatedAt: "2026-08-06 17:30",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "TIMEOUT", ts: "2026-08-06 17:30"}, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(10, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {status: "stuck", detail: "VKYC session timed out. No agent connected within timeout window.",
+          fields: [{v: "VKYC: TIMEOUT", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_ckyc_spike: {
+    uuid: "dca-ckyc-spike-001", name: "[Test] CKYC error spike",
+    phone: "10100000066", email: "test.ckyc.spike@slice.in",
+    applications: [{
+      id: "app_dca_t66", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at CKYC — error spike",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 12:00",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "CKYC API returning errors. Multiple users affected. Systemic issue.",
+          fields: [{v: "CKYC: ERROR SPIKE", bad: true}, {v: "Systemic", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_aadhaar_otp_fail: {
+    uuid: "dca-aadhaar-otp-fail-001", name: "[Test] Aadhaar OTP not received",
+    phone: "10100000067", email: "test.aadhaar.otp@slice.in",
+    applications: [{
+      id: "app_dca_t67", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Aadhaar — OTP not received",
+      state: "PENDING", currentStep: 5, updatedAt: "2026-08-06 12:30",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "Aadhaar OTP not received. UIDAI delivery issue.",
+          fields: [{v: "Aadhaar OTP: NOT RECEIVED", bad: true}],
+          ckycAadhaar: {path: "aadhaar", detail: "Aadhaar OTP requested but never received — UIDAI delivery issue"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_aadhaar_epoch: {
+    uuid: "dca-aadhaar-epoch-001", name: "[Test] Aadhaar verifiedAt epoch",
+    phone: "10100000068", email: "test.aadhaar.epoch@slice.in",
+    applications: [{
+      id: "app_dca_t68", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Aadhaar — epoch timestamp",
+      state: "PENDING", currentStep: 5, updatedAt: "1970-01-01 00:00",
+      businessVerificationStatus: "SUBMITTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(5, {
+        "05": {status: "stuck", detail: "Aadhaar verified but verifiedAt shows epoch (1970-01-01). Data quality issue.",
+          fields: [{v: "verifiedAt: 1970-01-01", bad: true}, {v: "Epoch — bug", warn: true}],
+          ckycAadhaar: {path: "aadhaar", detail: "Aadhaar verified but timestamp is epoch (1970-01-01 00:00)"}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_vd_addr_mismatch: {
+    uuid: "dca-vd-addr-mismatch-001", name: "[Test] Verify details address mismatch",
+    phone: "10100000069", email: "test.vd.addr@slice.in",
+    applications: [{
+      id: "app_dca_t69", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Verify Details — address mismatch",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: null, gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Business address and KYC address do not match. Manual verification needed.",
+          fields: [{v: "Address: MISMATCH", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_vd_occupation: {
+    uuid: "dca-vd-occupation-001", name: "[Test] Verify details occupation conflict",
+    phone: "10100000070", email: "test.vd.occupation@slice.in",
+    applications: [{
+      id: "app_dca_t70", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at Verify Details — occupation conflict",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-06 14:15",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: null, gst: {status: "verified", ts: "2026-08-05 09:20"}, udyam: {status: "verified", ts: "2026-08-05 09:22"},
+      vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(8, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "08": {status: "stuck", detail: "Occupation field conflict. CKYC says SERVICE, user selected BUSINESS.",
+          fields: [{v: "Occupation: CONFLICT", warn: true}, {v: "CKYC: SERVICE vs User: BUSINESS", warn: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Coverage — features ───────────────────────────────────────────────────
+  dca_systemic_nsdl: {
+    uuid: "dca-systemic-nsdl-001", name: "[Test] Systemic NSDL 5xx spike",
+    phone: "10100000072", email: "test.systemic.nsdl@slice.in",
+    applications: [{
+      id: "app_dca_t72", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Stuck at PAN — systemic NSDL outage",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "NSDL returning 5xx errors. Systemic outage affecting multiple users.",
+          fields: [{v: "NSDL: SYSTEMIC 5xx", bad: true}]}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  // ── Coverage — dedupe ─────────────────────────────────────────────────────
+  dca_dedupe_clear: {
+    uuid: "dca-dedupe-clear-001", name: "[Test] Dedupe clear at all checkpoints",
+    phone: "10100000074", email: "test.dedupe.clear@slice.in",
+    applications: [{
+      id: "app_dca_t74", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "Active — dedupe clear everywhere",
+      state: "APPROVED", currentStep: 13, updatedAt: "2026-08-08 14:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "created", ts: "2026-08-08 14:00"}, redflagCount: 0,
+      steps: mkDcaSteps(14, {
+        "02": {dedupe: {status: "clear"}},
+        "05": {ckycAadhaar: {path: "ckyc"}, dedupe: {status: "clear"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}, dedupe: {status: "clear"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "13": {accountCreation: {nodes: [{name: "KYC", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Account", status: "pass"}]}}
+      }),
+      webhooks: [
+        {event: "user_states: KYC_APPROVED", status: "ok", time: "2026-08-07 10:00"},
+        {event: "user_states: CURRENT_ACCOUNT_CREATED", status: "ok", time: "2026-08-08 14:00"},
+      ],
+    }],
+  },
+
+  dca_dedupe_pan_contact: {
+    uuid: "dca-dedupe-pan-contact-001", name: "[Test] Dedupe conflict at PAN phone+email",
+    phone: "10100000075", email: "test.dedupe.contact@slice.in",
+    applications: [{
+      id: "app_dca_t75", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Dedupe conflict at PAN — phone+email match",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 10:30",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "Dedupe conflict at PAN. Phone and email match existing user.",
+          fields: [{v: "Dedupe: CONFLICT", bad: true}],
+          dedupe: {status: "conflict", matchedOn: ["phone", "email"], matchedUUIDs: ["existing-uuid-contact-match"],
+            candidates: [{uuid: "existing-uuid-contact-match", status: "APPROVED", name: "Another Merchant"}]}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_dedupe_pre_cif: {
+    uuid: "dca-dedupe-pre-cif-001", name: "[Test] Dedupe conflict at pre-CIF",
+    phone: "10100000076", email: "test.dedupe.precif@slice.in",
+    applications: [{
+      id: "app_dca_t76", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Dedupe conflict at pre-CIF check",
+      state: "PENDING", currentStep: 13, updatedAt: "2026-08-08 15:00",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "clear", reason: "No redflag rows", ts: "2026-08-04 09:50"},
+      gst: {status: "verified", ts: "2026-08-04 09:20"}, udyam: {status: "verified", ts: "2026-08-04 09:22"},
+      vkyc: {status: "APPROVED", ts: "2026-08-06 15:00"}, audit: null,
+      accountCreated: {status: "not_created", reason: "Dedupe at pre-CIF"}, redflagCount: 0,
+      steps: mkDcaSteps(13, {
+        "05": {ckycAadhaar: {path: "ckyc"}},
+        "09": {fraudCheck: {status: "clear", ts: "2026-08-04 09:50"}},
+        "10": {vkycOutcome: {status: "APPROVED", ts: "2026-08-06 15:00"}, vkycAgent: {action: "ACCEPTED"}},
+        "11": {postVkycPipeline: {checks: [{name: "Dedupe", status: "pass"}, {name: "Redflag", status: "pass"}, {name: "Fraud", status: "pass"}]}},
+        "13": {status: "stuck", detail: "Dedupe conflict found at pre-CIF check. Account creation blocked.",
+          fields: [{v: "Dedupe: pre-CIF CONFLICT", bad: true}],
+          dedupe: {status: "conflict", matchedOn: ["PAN", "CIF"], matchedUUIDs: ["existing-cif-match"]}}
+      }),
+      webhooks: [],
+    }],
+  },
+
+  dca_dedupe_many: {
+    uuid: "dca-dedupe-many-001", name: "[Test] Dedupe many candidates",
+    phone: "10100000077", email: "test.dedupe.many@slice.in",
+    applications: [{
+      id: "app_dca_t77", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "Dedupe conflict — 4 matching candidates",
+      state: "PENDING", currentStep: 2, updatedAt: "2026-08-06 11:00",
+      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
+      fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(2, {
+        "02": {status: "stuck", detail: "Dedupe found 4 matching candidates. Manual resolution required.",
+          fields: [{v: "Dedupe: 4 CANDIDATES", bad: true}],
+          dedupe: {status: "conflict", matchedOn: ["PAN", "phone"],
+            candidates: [
+              {uuid: "cand-1-uuid", status: "APPROVED", name: "Merchant A", product: "DCA"},
+              {uuid: "cand-2-uuid", status: "REJECTED", name: "Merchant B", product: "DCA"},
+              {uuid: "cand-3-uuid", status: "PENDING", name: "Merchant C", product: "EDI"},
+              {uuid: "cand-4-uuid", status: "APPROVED", name: "Merchant D", product: "DSA"},
+            ]}}
+      }),
+      webhooks: [],
+    }],
+  },
+
 };
 
 // ops_dashboard (DCA) — state, render logic, and event wiring
@@ -751,6 +2242,48 @@ function deriveAlerts(u, app) {
   const ckycStep = (app.steps || []).find(s => s.ckycAadhaar && s.ckycAadhaar.path === "fallback");
   if (ckycStep) add("info", "CKYC fallback to Aadhaar", "CKYC data was found but OTP verification failed. User switched to Aadhaar path.");
 
+  // SIM binding failure
+  const simB = app.simBinding || u.simBinding;
+  if (simB && simB.status === "failed")
+    add("p0", "SIM binding failed - " + (simB.reason || "unknown"), "SIM binding check failed. See Checks -> SIM binding.");
+
+  // AML match
+  if (app.amlStatus && app.amlStatus.match)
+    add("p1", "AML possible match", app.amlStatus.reason || "AML screening found a possible match. Verify manually.");
+  if (app.amlStatus && app.amlStatus.status === "pending")
+    add("p1", "AML check pending", "AML screening has not completed.");
+
+  // Manual review
+  if (app.manualReview && app.manualReview.status === "under_review")
+    add("p1", "In manual review (" + (app.manualReview.type || "KYC Ops") + ")", app.manualReview.reason || "Application is under manual review.");
+  if (app.manualReview && app.manualReview.status === "rejected")
+    add("p0", "Manual review rejected", app.manualReview.reason || "Manual reviewer rejected this application.");
+
+  // VKYC link generation failed
+  if (v && v.status === "LINK_FAILED")
+    add("p0", "VKYC link generation failed", "VKYC link could not be generated. Check VKYC service status.");
+  if (v && v.status === "NO_AGENTS")
+    add("p1", "VKYC - no agents available", "No VKYC agents available in the user's region.");
+  if (v && v.status === "TIMEOUT")
+    add("p1", "VKYC - timeout", "VKYC session timed out.");
+
+  // Abandoned
+  if (app.status === "abandoned")
+    add("info", "Application abandoned", `Idle for ${app.idleDays || "many"} days. No user activity detected.`);
+
+  // Journey reset
+  const resetSteps = (app.steps || []).filter(s => s.status === "reset");
+  if (resetSteps.length > 0)
+    add("info", "Journey reset detected", `${resetSteps.length} step(s) have been reset. Check timeline for details.`);
+
+  // Account creation: approved + not active
+  if (app.state === "INTERNAL_APPROVED" && app.status !== "active")
+    add("p1", "Approved != Active (INTERNAL_APPROVED)", "Application shows INTERNAL_APPROVED but account is not yet active.");
+
+  // Existing savings account rejection
+  if (app.rejectionReason === "EXISTING_SAVINGS_ACCOUNT")
+    add("p0", "Rejected - existing savings account", "User already has a savings account. Cannot open Current Account.");
+
   const rank = { p0: 0, p1: 1, info: 2 };
   return A.sort((a, b) => rank[a.level] - rank[b.level]);
 }
@@ -817,7 +2350,11 @@ function renderApp(u, app) {
 
         <div class="card">
           <div class="card-header"><span class="card-title">Checks</span></div>
+          ${renderSIMCheck(app.simBinding || u.simBinding)}
           ${renderFraudCheck(app.fraud)}
+          ${renderAMLCheck(app.amlStatus)}
+          ${renderRiskCheck(deriveRiskDecision(app))}
+          ${renderManualReviewCheck(app.manualReview)}
           ${renderGstCheck(app.gst)}
           ${renderUdyamCheck(app.udyam)}
           ${renderVkycCheck(app.vkyc)}

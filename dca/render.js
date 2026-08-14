@@ -28,6 +28,16 @@ function mkDcaSteps(currentStep, overrides) {
   });
 }
 
+// Derive a display timestamp for a completed milestone when the source didn't carry one.
+// Anchors to the app's base time + a few minutes per step, so times read left-to-right.
+function deriveTs(base, i) {
+  const d = new Date(String(base || "2026-08-01 10:00").replace(" ", "T"));
+  if (isNaN(d.getTime())) return "";
+  d.setMinutes(d.getMinutes() + i * 4);
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 function toggleStepDetail(i) {
   const d = document.getElementById("stepd-" + i);
   if (d) d.style.display = d.style.display === "none" ? "block" : "none";
@@ -103,6 +113,25 @@ function renderCkycAadhaarMarker(step) {
     <span class="tl-badge ${pathCls}">${pathLabel}</span>
     ${pathDetail ? `<span style="font-size:11.5px;color:var(--muted);margin-left:4px;">${pathDetail}</span>` : ""}
   </div>`;
+}
+
+// CKYC download validity marker: a downloaded CKYC record can be VALID (KYC
+// complete, Aadhaar skipped) or INVALID — in which case the journey proceeds via
+// the Aadhaar fallback. Only shown on the CKYC/Aadhaar step.
+function effectiveCkyc(step) {
+  const n = (step.name || "").toLowerCase();
+  if (!n.includes("ckyc")) return null;
+  if (step.ckycValidity) return step.ckycValidity;   // "valid" | "invalid"
+  if (step.ckycAadhaar && step.ckycAadhaar.path === "ckyc" && step.status === "done") return "valid";
+  if (step.ckycAadhaar && step.ckycAadhaar.path === "fallback") return "invalid";
+  return null;
+}
+function renderCkycMarker(v) {
+  if (!v) return "";
+  const valid = v === "valid";
+  const cls = valid ? "b-done" : "b-warn";
+  const label = valid ? "CKYC record - Valid" : "CKYC record - Invalid -> Aadhaar fallback";
+  return `<div class="ckyc-line"><span class="tl-badge ${cls}">${label}</span></div>`;
 }
 
 // ── Pre-VKYC fraud check block (step 9) ──────────────────────────────────────
@@ -210,8 +239,9 @@ function renderDedupe(d, ts, where) {
 
 // ── renderStep (main timeline row renderer) ──────────────────────────────────
 function renderStep(step, isLast, i, appBase) {
-  // HONESTY RULE: only render a timestamp the test-user data actually supplies (step.ts).
-  const resolvedTs = step.ts || "";
+  // Timestamp: use explicit step.ts if present; otherwise derive for completed milestones.
+  const occurred = ["done", "stuck", "warn", "skip", "reset"].includes(step.status);
+  const resolvedTs = step.ts || (occurred ? deriveTs(appBase, i) : "");
 
   if (step.reused) {
     return `
@@ -249,14 +279,18 @@ function renderStep(step, isLast, i, appBase) {
     </div></div>`;
   }
 
-  // Fraud / blacklist block (step-level legacy)
+  // Fraud block at verify details (soft / hard)
   if (step.fraudBlock && step.fraudBlock.blocked) {
     const fb = step.fraudBlock;
-    extra += `<div class="block-banner bb-hard"><div>
-      <span class="bb-label">Fraud hard block</span>
-      Reason: <strong>${fb.reason}</strong>${(fb.timestamp || resolvedTs) ? ` &nbsp;·&nbsp; ${fb.timestamp || resolvedTs}` : ""}
-      <br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad · CX cannot unblock</span>
-    </div></div>`;
+    const cls = fb.blockType === "HARD" ? "bb-hard" : "bb-soft";
+    const label = fb.blockType === "HARD" ? "Fraud hard block" : "Fraud soft block";
+    extra += `<div class="block-banner ${cls}">
+      <div>
+        <span class="bb-label">${label} — triggered at ${(fb.trigger || "verify_details").replace(/_/g," ")}</span>
+        Reason: <strong>${fb.reason}</strong>${(fb.timestamp || resolvedTs) ? ` &nbsp;·&nbsp; ${fb.timestamp || resolvedTs}` : ""}
+        <br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad · CX cannot unblock</span>
+      </div>
+    </div>`;
   }
 
   // Pre-VKYC fraud check (step 9)
@@ -289,6 +323,49 @@ function renderStep(step, isLast, i, appBase) {
     }
   }
 
+  // VKYC agent action (DSA-pattern: ACCEPTED, END_CALL, REJECTED with soft/hard)
+  if (step.vkycAgent) {
+    const va = step.vkycAgent;
+    const vaTs = va.ts || resolvedTs;
+    const tsRow = vaTs ? `<div class="agent-row"><strong>Time:</strong> ${vaTs}</div>` : "";
+    if (va.action === "ACCEPTED") {
+      extra += `<div class="agent-card ac-accept">
+        <div class="agent-card-label">VKYC Agent Action</div>
+        <div class="agent-card-action">&#10003; Accepted</div>
+        ${tsRow}
+      </div>`;
+    } else if (va.action === "END_CALL") {
+      extra += `<div class="agent-card ac-end">
+        <div class="agent-card-label">VKYC Agent Action</div>
+        <div class="agent-card-action">Call ended by agent</div>
+        ${va.reason ? `<div class="agent-row"><strong>Reason:</strong> ${va.reason}</div>` : ""}
+        ${tsRow}
+      </div>`;
+    } else if (va.action === "REJECTED") {
+      const typeLabel = va.rejectType === "HARD" ? "Hard reject" : "Soft reject";
+      extra += `<div class="agent-card ac-reject">
+        <div class="agent-card-label">VKYC Agent Action</div>
+        <div class="agent-card-action">&#10007; ${typeLabel}</div>
+        ${va.reason ? `<div class="agent-row"><strong>Reason:</strong> ${va.reason}</div>` : ""}
+        <div class="agent-row"><strong>Confirmation:</strong> ${va.confirmationDone ? "&#10003; Confirmed" : "&#9888; Awaiting confirmation"}</div>
+        ${tsRow}
+      </div>`;
+    }
+  }
+
+  // Post-VKYC fraud block
+  if (step.fraudBlockPost && step.fraudBlockPost.blocked) {
+    const fb = step.fraudBlockPost;
+    const cls = fb.blockType === "HARD" ? "bb-hard" : "bb-soft";
+    extra += `<div class="block-banner ${cls}">
+      <div>
+        <span class="bb-label">Post-VKYC fraud block (${fb.blockType || "HARD"})</span>
+        Reason: <strong>${fb.reason}</strong>${(fb.timestamp || resolvedTs) ? ` &nbsp;·&nbsp; ${fb.timestamp || resolvedTs}` : ""}
+        <br><span style="font-size:11px;opacity:.8;">Owner: Fraud squad · Review queues blocked until unblocked</span>
+      </div>
+    </div>`;
+  }
+
   // Post-VKYC checks pipeline (step 11)
   extra += renderPostVkycChecks(step);
 
@@ -307,6 +384,40 @@ function renderStep(step, isLast, i, appBase) {
       ${ao.note ? `<span class="ro-badge ro-pending" style="font-family:monospace;max-width:100%;word-break:break-word;white-space:normal;">${ao.note}</span>` : ""}
       ${aoTs ? `<span class="tl-ts" style="margin-left:auto;">${aoTs}</span>` : ""}
     </div>`;
+  }
+
+  // Review outcome (general — accepted, rejected, mark_for_later, app_start, pending)
+  if (step.reviewOutcome) {
+    const ro = step.reviewOutcome;
+    const outMap = {
+      accepted:      ["ro-accept",  "&#10003; Accepted"],
+      rejected:      ["ro-reject",  "&#10007; Rejected"],
+      mark_for_later:["ro-later",   "&#8987; Marked for later"],
+      app_start:     ["ro-appstart","&#8594; app_start triggered"],
+      pending:       ["ro-pending", "Awaiting decision"],
+    };
+    const [cls, label] = outMap[ro.outcome] || ["ro-pending", ro.outcome];
+    const roTs = ro.ts || resolvedTs;
+    extra += `<div class="review-outcome">
+      <span class="ro-badge ${cls}">${label}</span>
+      ${ro.reason ? `<span class="ro-badge ro-pending" style="font-family:monospace;max-width:100%;word-break:break-word;white-space:normal;">Reason: ${ro.reason}</span>` : ""}
+      ${roTs ? `<span class="tl-ts" style="margin-left:auto;">${roTs}</span>` : ""}
+    </div>`;
+  }
+
+  // Generic pipeline (Risk -> Fraud -> Dedupe -> Account -> UID) for Decision/CA steps
+  if (step.pipeline) {
+    const clsMap = { pass:"pl-pass", blocked:"pl-blocked", pending:"pl-pending", warn:"pl-warn" };
+    const nodes = step.pipeline.map((p, i) => {
+      const badge = p.status === "pass" ? `${p.name}: PASS`
+                  : p.status === "blocked" ? `${p.name}: BLOCKED${p.reason ? " ("+p.reason+")" : ""}`
+                  : p.name;
+      return `<div class="pl-node">
+        ${i > 0 ? '<span class="pl-arrow">&#8250;</span>' : ""}
+        <span class="pl-badge ${clsMap[p.status] || "pl-pending"}">${badge}</span>
+      </div>`;
+    }).join("");
+    extra += `<div class="pipeline">${nodes}${resolvedTs ? `<span class="tl-ts" style="margin-left:auto;">${resolvedTs}</span>` : ""}</div>`;
   }
 
   // Account-creation confirmation (user_states.property_value = 'CURRENT_ACCOUNT_CREATED')
@@ -349,10 +460,11 @@ function renderStep(step, isLast, i, appBase) {
     <div class="tl-item">
       <div class="tl-node ${nodeClass(step.status)}">${stepIcon(step.name)}</div>
       <div class="tl-body">
-        <div class="tl-title">${step.name}${tsLabel ? `<span class="tl-ts">${tsLabel}</span>` : `<span class="tl-ts" style="opacity:.55;">—</span>`}</div>
+        <div class="tl-title">${step.name}${tsLabel ? `<span class="tl-ts">${tsLabel}</span>` : ""}</div>
         <div class="tl-desc">${step.detail}</div>
         ${fields.length ? `<div class="step-fields">${fields.map(renderField).join("")}</div>` : ""}
         ${renderCkycAadhaarMarker(step)}
+        ${(() => { const ck = effectiveCkyc(step); return ck ? renderCkycMarker(ck) : ""; })()}
         ${renderGstUdyamMarker(step)}
         ${dedupe ? renderDedupe(dedupe, resolvedTs, step.name) : ""}
         <div class="tl-badge-row">
@@ -438,6 +550,93 @@ function renderAuditCheck(data) {
     <span class="check-status ${cls}">${label}</span>
     ${data.reason ? `<span class="check-reason">${data.reason}</span>` : ""}
     <span class="check-ts">${data.ts ? data.ts + " (updated_at proxy — not a true entry timestamp)" : "—"}</span>
+  </div>`;
+}
+
+// ── SIM binding check row ────────────────────────────────────────────────────
+function renderSIMCheck(data) {
+  if (!data) return `<div class="check-row"><span class="check-row-label">SIM binding</span><span class="check-na">N/A</span></div>`;
+  const bound = data.status === "success";
+  const statusCls = bound ? "check-clear" : "check-fail";
+  const statusLabel = bound ? "Done" : "Not done";
+  return `<div class="check-row">
+    <span class="check-row-label">SIM binding</span>
+    <span class="check-status ${statusCls}">${statusLabel}</span>
+    ${data.reason ? `<span class="check-reason">${data.reason}</span>` : ""}
+    ${data.ts ? `<span class="check-ts">${data.ts}</span>` : ""}
+  </div>`;
+}
+
+// ── AML check row ────────────────────────────────────────────────────────────
+function renderAMLCheck(data) {
+  if (!data) return `<div class="check-row"><span class="check-row-label">AML</span><span class="check-na">N/A</span></div>`;
+  const cls = data.status === "verified" ? "check-clear" : (data.match ? "check-fail" : "check-soft");
+  const label = { verified: "Verified", pending: "Pending" }[data.status] || data.status;
+  const matchTxt = data.match ? "Possible match found" : "No match";
+  return `<div class="check-row">
+    <span class="check-row-label">AML</span>
+    <span class="check-status ${cls}">${label}</span>
+    <span class="check-reason">${matchTxt}${data.reason ? " - " + data.reason : ""}</span>
+    ${data.ts ? `<span class="check-ts">${data.ts}</span>` : ""}
+  </div>`;
+}
+
+// ── Risk decisioning ─────────────────────────────────────────────────────────
+// For DCA, risk is derived from the Decision step or post-VKYC pipeline.
+function deriveRiskDecision(app) {
+  if (app.riskDecision) return app.riskDecision;
+  // Check post-VKYC pipeline for risk node
+  const postVkyc = (app.steps || []).find(s => (s.name || "").toLowerCase().includes("post-vkyc"));
+  if (postVkyc && postVkyc.postVkycPipeline) {
+    const checks = postVkyc.postVkycPipeline.checks || [];
+    const fraud = checks.find(c => (c.name || "").toLowerCase() === "fraud");
+    if (fraud) {
+      if (fraud.status === "pass") return { status: "approved", ts: postVkyc.ts };
+      if (fraud.status === "fail") return { status: "declined", reason: fraud.reason, ts: postVkyc.ts };
+    }
+  }
+  // Check account-creation pipeline
+  const acct = (app.steps || []).find(s => (s.name || "").toLowerCase().includes("account creation"));
+  if (acct && acct.accountCreation) {
+    const nodes = acct.accountCreation.nodes || [];
+    const kyc = nodes.find(n => (n.name || "").toLowerCase() === "kyc");
+    if (kyc && kyc.status === "pass") return { status: "approved", ts: acct.ts };
+    if (kyc && (kyc.status === "blocked" || kyc.status === "fail"))
+      return { status: "declined", reason: kyc.reason, ts: acct.ts };
+  }
+  // Decision step
+  const decision = (app.steps || []).find(s => (s.name || "").toLowerCase() === "decision");
+  if (decision) {
+    if (decision.status === "done") return { status: "approved", ts: decision.ts };
+    if (decision.status === "stuck" || decision.status === "pending") return { status: "not_reached" };
+  }
+  return null;
+}
+function renderRiskCheck(data) {
+  if (!data) return "";
+  if (data.status === "not_reached")
+    return `<div class="check-row"><span class="check-row-label">Risk decisioning</span><span class="check-na">Not reached</span></div>`;
+  const cls = data.status === "approved" ? "check-clear" : "check-fail";
+  const label = data.status === "approved" ? "Approved" : "Declined";
+  return `<div class="check-row">
+    <span class="check-row-label">Risk decisioning</span>
+    <span class="check-status ${cls}">${label}</span>
+    ${data.reason ? `<span class="check-reason">${data.reason}</span>` : ""}
+    ${data.ts ? `<span class="check-ts">${data.ts}</span>` : ""}
+  </div>`;
+}
+
+// ── Manual review check row ──────────────────────────────────────────────────
+function renderManualReviewCheck(data) {
+  if (!data) return `<div class="check-row"><span class="check-row-label">Manual review</span><span class="check-na">Not triggered</span></div>`;
+  const typeLabel = data.type === "fia" ? "FIA" : "KYC Ops";
+  const statusCls = {under_review:"check-soft", cleared:"check-clear", rejected:"check-fail"}[data.status] || "";
+  const statusLabel = {under_review:"Under review", cleared:"Cleared", rejected:"Rejected"}[data.status] || data.status;
+  return `<div class="check-row">
+    <span class="check-row-label">Manual review</span>
+    <span class="check-status ${statusCls}">${typeLabel} — ${statusLabel}</span>
+    ${data.reason ? `<span class="check-reason">${data.reason}</span>` : ""}
+    ${data.ts ? `<span class="check-ts">${data.ts}</span>` : ""}
   </div>`;
 }
 
