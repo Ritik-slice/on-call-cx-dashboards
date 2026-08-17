@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event delivery card — states (EDI) · Spacce CX</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #F1F1F6; }
+  .spec-top .sp-qa-btn { text-decoration: none; }
+  .spec-top .nav { display: flex; gap: 10px; align-items: center; }
+  .spec-cell .card { margin: 0; box-shadow: 0 2px 10px rgba(30,30,60,.07); }
+  .spec-section-title .ms-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="spec-top">
+    <div><h2>Event delivery card — states (EDI)</h2><span class="sub">Received / Not received / Pending — rendered by the real renderEventRow()</span></div>
+    <div class="nav">
+      <details class="devnav">
+        <summary class="sp-qa-btn">Dev references ▾</summary>
+        <div class="devnav-menu">
+          <a href="alerts-states.html">Alerts card states</a>
+          <a href="checks-states.html">Checks states</a>
+          <a href="event-delivery-states.html" class="active">Event delivery states</a>
+        </div>
+      </details>
+      <a href="index.html" class="sp-qa-btn">← Back to dashboard</a>
+    </div>
+  </div>
+  <div class="spec-wrap" id="body"></div>
+
+<script src="render.js"></script>
+<script>
+// Event-delivery gallery (EDI) — mirrors the DCA tool's event-delivery-states.html.
+// "Received" means the event/flag was present in this snapshot's fetch.
+function _ecell(caption, rowsHtml) {
+  return `<div class="spec-cell">
+    <div class="spec-caption">${caption}</div>
+    <div class="card"><div class="card-header"><span class="card-title">Event delivery</span></div>
+      <div class="card-caveat">Key EDI handoff events. "Received" means the event/flag was present in this snapshot.</div>
+      <div class="card-body" style="padding:4px 18px;">${rowsHtml}</div></div>
+  </div>`;
+}
+const _t = (chip, txt) => `<span class="tagref">${chip}</span>${txt}`;
+
+function build() {
+  const rep = _ecell(_t("full card", "<b>Representative card</b> — full happy-path handoff sequence through sanction and disbursement."),
+    renderEventRow({ event:"PAN verified", status:"ok", time:"2026-08-05 09:08" }) +
+    renderEventRow({ event:"Credit score fetched", status:"ok", time:"2026-08-05 09:15" }) +
+    renderEventRow({ event:"AA consent approved", status:"ok", time:"2026-08-05 10:00" }) +
+    renderEventRow({ event:"VKYC decision: APPROVED", status:"ok", time:"2026-08-07 15:05" }) +
+    renderEventRow({ event:"Risk decision: APPROVED", status:"ok", time:"2026-08-08 10:00" }) +
+    renderEventRow({ event:"Sanction issued: 3,00,000", status:"ok", time:"2026-08-08 10:15" }) +
+    renderEventRow({ event:"Loan disbursed: 3,00,000", status:"ok", time:"2026-08-10 14:30" }));
+
+  const states = [
+    _ecell(_t("Received", "<b>Received</b> — flag/event present in the current snapshot (positive)."),
+      renderEventRow({ event:"VKYC decision: APPROVED", status:"ok", time:"2026-08-07 15:05" })),
+    _ecell(_t("Not received", "<b>Not received</b> — the silent-failure signal. E.g. sanction never issued because risk was rejected."),
+      renderEventRow({ event:"Sanction issued", status:"err", time:"not issued -- risk rejected" })),
+    _ecell(_t("Pending", "<b>Pending</b> — expected but not yet due."),
+      renderEventRow({ event:"AA consent approved", status:"pending", time:"waiting on user" })),
+    _ecell(_t("empty", "<b>Nothing trackable</b> — very early-stage application; say so explicitly, never a blank card."),
+      `<div style="padding:12px 0;font-size:13px;color:var(--muted);">No events tracked for this application.</div>`),
+  ];
+
+  const covered = [
+    _ecell(_t("PAN", "<b>PAN verified</b>."), renderEventRow({ event:"PAN verified", status:"ok", time:"2026-08-05 09:08" })),
+    _ecell(_t("Credit", "<b>Credit score fetched</b>."), renderEventRow({ event:"Credit score fetched", status:"ok", time:"2026-08-05 09:15" })),
+    _ecell(_t("AA", "<b>AA consent approved</b>."), renderEventRow({ event:"AA consent approved", status:"ok", time:"2026-08-05 10:00" })),
+    _ecell(_t("VKYC", "<b>VKYC decision</b>."), renderEventRow({ event:"VKYC decision: APPROVED", status:"ok", time:"2026-08-07 15:05" })),
+    _ecell(_t("Risk", "<b>Risk decision</b> — the waitlist-vs-sanction fork."),
+      renderEventRow({ event:"Risk decision: APPROVED", status:"ok", time:"2026-08-08 10:00" }) +
+      renderEventRow({ event:"Risk decision: REJECTED", status:"ok", time:"2026-08-09 10:00" })),
+    _ecell(_t("Sanction", "<b>Sanction issued</b> — never fires if risk is rejected, even when VKYC/audit/fraud/dedupe are all clean."),
+      renderEventRow({ event:"Sanction issued: 5,00,000", status:"ok", time:"2026-08-09 10:15" }) +
+      renderEventRow({ event:"Sanction issued", status:"err", time:"not issued -- risk rejected, routed to waitlist instead" })),
+    _ecell(_t("Disbursement", "<b>Loan disbursed</b> — the terminal happy-path event."),
+      renderEventRow({ event:"Loan disbursed: 3,00,000", status:"ok", time:"2026-08-10 14:30" }) +
+      renderEventRow({ event:"Loan disbursed", status:"err", time:"not disbursed -- waitlisted" })),
+  ];
+
+  const sec = (title, sub, cells) =>
+    `<div class="spec-section-title">${title}<span class="ms-sub">${sub}</span></div><div class="spec-grid">${cells.join("")}</div>`;
+
+  document.getElementById("body").innerHTML =
+    sec("Representative", "a full happy-path card as it appears live", [rep]) +
+    sec("Delivery states", "Received · Not received · Pending · empty", states) +
+    sec("Events covered", "PAN · Credit score · AA · VKYC · Risk · Sanction · Disbursement", covered);
+}
+build();
+</script>
+</body>
+</html>

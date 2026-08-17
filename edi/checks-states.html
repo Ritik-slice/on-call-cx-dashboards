@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checks card — states per row (EDI) · Spacce CX</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: #F1F1F6; }
+  .spec-top .sp-qa-btn { text-decoration: none; }
+  .spec-top .nav { display: flex; gap: 10px; align-items: center; }
+  .spec-cell .card { margin: 0; box-shadow: 0 2px 10px rgba(30,30,60,.07); }
+  .spec-section-title .ms-sub { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div class="spec-top">
+    <div><h2>Checks card — states per row (EDI)</h2><span class="sub">Visual reference — one section per check, a cell per outcome, rendered by the real render.js check renderers</span></div>
+    <div class="nav">
+      <details class="devnav">
+        <summary class="sp-qa-btn">Dev references ▾</summary>
+        <div class="devnav-menu">
+          <a href="alerts-states.html">Alerts card states</a>
+          <a href="checks-states.html" class="active">Checks states</a>
+          <a href="event-delivery-states.html">Event delivery states</a>
+        </div>
+      </details>
+      <a href="index.html" class="sp-qa-btn">← Back to dashboard</a>
+    </div>
+  </div>
+  <div class="spec-wrap" id="body"></div>
+
+<script src="render.js"></script>
+<script>
+// Checks-states gallery (EDI) — every row x outcome, rendered by the real EDI check
+// renderers. Rows: SIM binding, Fraud/redflag, AML, Risk decision, Credit score,
+// Account Aggregator, GST, Udyam, VKYC, Audit review, Manual review.
+function _ccell(caption, rowsHtml) {
+  return `<div class="spec-cell">
+    <div class="spec-caption">${caption}</div>
+    <div class="card"><div class="card-header"><span class="card-title">Checks</span></div>${rowsHtml}</div>
+  </div>`;
+}
+const _t = (chip, txt) => `<span class="tagref">${chip}</span>${txt}`;
+const T = "2026-08-05 09:20";
+
+function build() {
+  const rep = _ccell(_t("full card", "<b>Representative Checks card</b> — all rows populated with latest values."),
+    renderSIMCheck({ status:"success", reason:"OK", ts:T }) +
+    renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T }) +
+    renderAMLCheck({ status:"verified", match:false, ts:T }) +
+    renderRiskCheck({ status:"approved", ts:T }) +
+    renderCreditScoreCheck({ score:745, source:"Bureau pull post-PAN", ts:T }) +
+    renderAACheck({ status:"linked", detail:"3/3 banks linked", ts:T }) +
+    renderGstCheck({ status:"verified", source:"Auto-fetched at PAN step", ts:T }) +
+    renderUdyamCheck({ status:"verified", ts:T }) +
+    renderVkycCheck({ status:"APPROVED", ts:T }) +
+    renderAuditCheck(null) +
+    renderManualReviewCheck(null));
+
+  const sim = [
+    _ccell(_t("SIM binding", "<b>Success</b> — bound normally at login."), renderSIMCheck({ status:"success", reason:"OK", ts:T })),
+    _ccell(_t("SIM binding", "<b>Failed</b> — DOES block progress for EDI (unlike DCA)."), renderSIMCheck({ status:"failed", reason:"INTEGRITY_BREACH", ts:T })),
+    _ccell(_t("SIM binding", "<b>N/A</b> — no SIM binding data."), renderSIMCheck(null)),
+  ];
+
+  const fraud = [
+    _ccell(_t("Fraud/redflag", "<b>Clear</b> — no redflag rows."), renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Hard block</b> — USER_BLACKLISTED, terminal."), renderFraudCheck({ status:"hard_block", reason:"USER_BLACKLISTED", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Dedupe conflict</b> — duplicate PAN / existing application."), renderFraudCheck({ status:"dedupe_conflict", reason:"Duplicate PAN matches active application", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Audit declined</b> — CONCURRENT_AUDIT_REVIEW_DECLINED."), renderFraudCheck({ status:"audit_declined", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>Flagged (other)</b> — soft block, e.g. ADDRESS_MISMATCH_PATTERN."), renderFraudCheck({ status:"flagged", reason:"ADDRESS_MISMATCH_PATTERN", ts:T })),
+    _ccell(_t("Fraud/redflag", "<b>N/A</b> — no redflag data (never assume clear)."), renderFraudCheck(null)),
+  ];
+
+  const aml = [
+    _ccell(_t("AML", "<b>Verified</b> — no match, screening complete."), renderAMLCheck({ status:"verified", match:false, ts:T })),
+    _ccell(_t("AML", "<b>Pending</b> — screening in progress."), renderAMLCheck({ status:"pending", match:false, ts:T })),
+    _ccell(_t("AML", "<b>Possible match</b> — escalated to Compliance."), renderAMLCheck({ status:"pending", match:true, reason:"Name partial match against watchlist", ts:T })),
+    _ccell(_t("AML", "<b>N/A</b> — no AML data."), renderAMLCheck(null)),
+  ];
+
+  const risk = [
+    _ccell(_t("Risk decision", "<b>Approved</b>."), renderRiskCheck({ status:"approved", ts:T })),
+    _ccell(_t("Risk decision", "<b>Rejected</b> — routes to Waitlist if VKYC/audit/fraud/dedupe are all clean, otherwise a P0 alert."), renderRiskCheck({ status:"rejected", reason:"Risk score 38/100 -- below approval threshold", ts:T })),
+    _ccell(_t("Risk decision", "<b>Not reached</b> — no risk decision yet."), renderRiskCheck(null)),
+  ];
+
+  const credit = [
+    _ccell(_t("Credit score", "<b>High (>=700)</b>."), renderCreditScoreCheck({ score:780, source:"Bureau pull post-PAN", ts:T })),
+    _ccell(_t("Credit score", "<b>Medium (600-699)</b>."), renderCreditScoreCheck({ score:650, source:"Bureau pull post-PAN", ts:T })),
+    _ccell(_t("Credit score", "<b>Low (&lt;600)</b>."), renderCreditScoreCheck({ score:580, source:"Bureau pull post-PAN", ts:T })),
+    _ccell(_t("Credit score", "<b>Not fetched</b> — not reached yet."), renderCreditScoreCheck(null)),
+  ];
+
+  const aa = [
+    _ccell(_t("Account Aggregator", "<b>Linked</b> — all banks consented."), renderAACheck({ status:"linked", detail:"3/3 banks linked", ts:T })),
+    _ccell(_t("Account Aggregator", "<b>Partial</b> — some banks failed OTP."), renderAACheck({ status:"partial", detail:"2/3 banks linked; PNB OTP failed", ts:T })),
+    _ccell(_t("Account Aggregator", "<b>Not reached</b>."), renderAACheck(null)),
+  ];
+
+  const gst = [
+    _ccell(_t("GST", "<b>Verified</b> — auto-fetched or manually entered and valid."), renderGstCheck({ status:"verified", source:"Auto-fetched at PAN step", ts:T })),
+    _ccell(_t("GST", "<b>Not verified</b> — may be gating depending on CPV region (see PRD §4.1 step 15)."), renderGstCheck({ status:"not_verified", note:"Not in CPV-serviceable region -- GST is mandatory", ts:T })),
+    _ccell(_t("GST", "<b>N/A</b> — no GST data fetched."), renderGstCheck(null)),
+  ];
+
+  const udyam = [
+    _ccell(_t("Udyam", "<b>Verified</b> — sole-prop/individual organisation type confirmed."), renderUdyamCheck({ status:"verified", ts:T })),
+    _ccell(_t("Udyam", "<b>Not verified — mandatory block</b>."), renderUdyamCheck({ status:"not_verified", ts:T })),
+    _ccell(_t("Udyam", "<b>N/A</b> — no Udyam data fetched."), renderUdyamCheck(null)),
+  ];
+
+  const vkyc = [
+    _ccell(_t("VKYC", "<b>Approved</b>."), renderVkycCheck({ status:"APPROVED", ts:T })),
+    _ccell(_t("VKYC", "<b>Rejected</b> — reason shown."), renderVkycCheck({ status:"REJECTED", rejectionReason:"DOCUMENT_MISMATCH", ts:T })),
+    _ccell(_t("VKYC", "<b>Pending</b> — no update since scheduling."), renderVkycCheck({ status:"PENDING", ts:T })),
+    _ccell(_t("VKYC", "<b>Not reached</b> — no VKYC row yet."), renderVkycCheck(null)),
+  ];
+
+  const audit = [
+    _ccell(_t("Audit review", "<b>Not triggered</b> — default."), renderAuditCheck(null)),
+    _ccell(_t("Audit review", "<b>Under review</b>."), renderAuditCheck({ status:"under_review", ts:T })),
+    _ccell(_t("Audit review", "<b>Approved (post-audit)</b>."), renderAuditCheck({ status:"approved", ts:T })),
+    _ccell(_t("Audit review", "<b>Declined</b> — CONCURRENT_AUDIT_REVIEW_DECLINED."), renderAuditCheck({ status:"declined", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:T })),
+  ];
+
+  const manualReview = [
+    _ccell(_t("Manual review", "<b>Not triggered</b> — default."), renderManualReviewCheck(null)),
+    _ccell(_t("Manual review", "<b>Under review</b> — FIA."), renderManualReviewCheck({ type:"fia", status:"under_review", ts:T })),
+    _ccell(_t("Manual review", "<b>Cleared</b> — KYC Ops."), renderManualReviewCheck({ type:"kyc_ops", status:"cleared", ts:T })),
+    _ccell(_t("Manual review", "<b>Rejected</b> — KYC Ops."), renderManualReviewCheck({ type:"kyc_ops", status:"rejected", reason:"Business address could not be verified", ts:T })),
+  ];
+
+  const sec = (title, sub, cells) =>
+    `<div class="spec-section-title">${title}<span class="ms-sub">${sub}</span></div><div class="spec-grid">${cells.join("")}</div>`;
+
+  document.getElementById("body").innerHTML =
+    sec("Representative", "all rows together, as on the live dashboard", [rep]) +
+    sec("SIM binding", "Success · Failed (blocking for EDI) · N/A", sim) +
+    sec("Fraud / redflag", "Clear · Hard block · Dedupe conflict · Audit declined · Flagged (other) · N/A", fraud) +
+    sec("AML", "Verified · Pending · Possible match · N/A", aml) +
+    sec("Risk decision", "Approved · Rejected · Not reached", risk) +
+    sec("Credit score", "High · Medium · Low · Not fetched", credit) +
+    sec("Account Aggregator", "Linked · Partial · Not reached", aa) +
+    sec("GST verification", "Verified · Not verified · N/A", gst) +
+    sec("Udyam verification", "Verified · Not verified (mandatory block) · N/A", udyam) +
+    sec("VKYC", "Approved · Rejected · Pending · Not reached", vkyc) +
+    sec("Audit review", "Not triggered · Under review · Approved · Declined", audit) +
+    sec("Manual review", "Not triggered · Under review · Cleared · Rejected", manualReview);
+}
+build();
+</script>
+</body>
+</html>

@@ -17,6 +17,14 @@
     <span class="kbd">&#x2318;K</span>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
+    <details class="devnav">
+      <summary class="sp-qa-btn">Dev references &#9662;</summary>
+      <div class="devnav-menu">
+        <a href="alerts-states.html">Alerts card states</a>
+        <a href="checks-states.html">Checks states</a>
+        <a href="event-delivery-states.html">Event delivery states</a>
+      </div>
+    </details>
     <button onclick="toggleTestPanel()" id="testPanelBtn" class="sp-qa-btn">QA · Test cases</button>
     <div class="sp-user"><span class="av">CX</span>EDI on-call ▾</div>
   </div>
@@ -61,7 +69,8 @@
         <div class="tc-row" onclick="loadTest('edi_risk_approved_disbursed')" data-uuid="edi_risk_approved_disbursed"><span class="tc-num">9</span>Risk approved, sanctioned 5L, disbursed</div>
         <div class="tc-row" onclick="loadTest('edi_risk_approved_gst_pending')" data-uuid="edi_risk_approved_gst_pending"><span class="tc-num">10</span>Sanctioned 2L, GST pending (mandatory)</div>
         <div class="tc-row" onclick="loadTest('edi_risk_approved_cpv_skip')" data-uuid="edi_risk_approved_cpv_skip"><span class="tc-num">11</span>Sanctioned 1L, GST skipped via CPV</div>
-        <div class="tc-row" onclick="loadTest('edi_risk_rejected_waitlist')" data-uuid="edi_risk_rejected_waitlist"><span class="tc-num">12</span>Risk rejected — waitlisted (score 580)</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_rejected_waitlist')" data-uuid="edi_risk_rejected_waitlist"><span class="tc-num">12</span>Risk rejected — waitlisted (risk score 38/100)</div>
+        <div class="tc-row" onclick="loadTest('edi_risk_rejected_all_clear')" data-uuid="edi_risk_rejected_all_clear"><span class="tc-num">12a</span>Risk rejected, everything else clean — Waitlist not Sanction</div>
       </div>
       <div class="tc-group">
         <div class="tc-section-header">Audit &amp; out-of-scope</div>
@@ -1325,6 +1334,62 @@ const USERS = {
       sanction: null, loanDisbursed: null, redflagCount: 0,
       steps: mkEdiSteps(4, { "04": { status: "stuck", detail: "NSDL PAN verification returning HTTP 5xx. This is affecting multiple users simultaneously -- likely a systemic outage, not a per-user issue.", fields: [{ v: "NSDL: 5xx (systemic)", bad: true }] } }),
       webhooks: [{ event: "PAN verified", status: "err", time: "NSDL 5xx spike at 2026-08-06 13:00" }],
+    }],
+  },
+
+  // -- 43. Risk rejected + VKYC approved + no fraud + no dedupe + no redflag -> Waitlist --
+  // Explicit QA case: every other check is clean, only Risk itself is rejected. Dedupe is
+  // shown CLEAR at both checkpoints (PAN + VKYC) to make the "no dedupe" condition visible,
+  // not just implied by a null field.
+  edi_risk_rejected_all_clear: {
+    uuid: "a1b2c3d4-1234-4abc-9def-0123456789ab", name: "Waseem Electronics (Waseem Qureshi)",
+    phone: "58000 99001", email: "waseem.electronics@gmail.com",
+    applications: [{
+      id: "app_edi_043", type: "edi_onboarding", label: "EDI",
+      status: "blocked", overallLabel: "Risk rejected -- everything else clean (VKYC approved, no fraud, no dedupe, no redflag) -- Waitlist, not Sanction",
+      state: "WAITLISTED", currentStep: 16, updatedAt: "2026-08-11 11:00",
+      sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-08 09:00" },
+      risk: { status: "rejected", reason: "Risk score 44/100 -- below the approval threshold. NOTE: VKYC is approved, dedupe is clear at both PAN and VKYC checkpoints, there is no fraud flag, and redflagCount is 0. Risk rejection alone is what routes this application to Waitlist instead of Sanction -- every other check passing does not override it.", ts: "2026-08-10 10:00" },
+      creditScoreCheck: { score: 610, source: "Bureau pull post-PAN", ts: "2026-08-08 09:15" },
+      aa: { status: "linked", detail: "2/2 banks linked", ts: "2026-08-08 10:00" },
+      gst: { status: "verified", ts: "2026-08-08 09:10" },
+      udyam: { status: "verified", ts: "2026-08-08 12:00" },
+      vkyc: { status: "APPROVED", ts: "2026-08-09 09:00" },
+      audit: null, sanction: null, loanDisbursed: null,
+      redflagCount: 0,
+      steps: [
+        { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-08 08:50" },
+        { num:"02", name:"Permissions", status:"done", detail:"All granted", ts:"2026-08-08 08:52" },
+        { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 1L-5L", loanRange:"1L - 5L", ts:"2026-08-08 08:55" },
+        { num:"04", name:"PAN Screen", status:"done", detail:"Individual PAN entered. Dedupe check clear -- no matching PAN found.", dedupe:{ status:"clear" }, ts:"2026-08-08 09:00" },
+        { num:"05", name:"Credit Score", status:"done", detail:"Credit score: 610", creditScore:610, ts:"2026-08-08 09:15" },
+        { num:"06", name:"Account Aggregator (Ignoosis)", status:"done", detail:"2 banks linked", ts:"2026-08-08 10:00" },
+        { num:"07", name:"CKYC / Aadhaar", status:"done", detail:"CKYC route completed", ts:"2026-08-08 10:30" },
+        { num:"08", name:"Business Details", status:"done", detail:"Submitted", ts:"2026-08-08 11:00" },
+        { num:"09", name:"Business Address", status:"done", detail:"Submitted", ts:"2026-08-08 11:15" },
+        { num:"10", name:"Udyam Registration", status:"done", detail:"Verified", ts:"2026-08-08 12:00" },
+        { num:"11", name:"Verify Details", status:"done", detail:"Verified. No fraud flag raised.", ts:"2026-08-08 12:15" },
+        { num:"12", name:"VKYC", status:"done", detail:"VKYC approved. Dedupe re-checked at VKYC -- still clear. No fraud flag.", vkycOutcome:{ status:"APPROVED", ts:"2026-08-09 09:00" }, dedupe:{ status:"clear" }, ts:"2026-08-09 09:00" },
+        { num:"13", name:"Post-VKYC Outcome", status:"stuck", detail:"Case 3: Risk REJECTED (score 44/100) even though VKYC is approved, dedupe is clear at both checkpoints, there is no fraud flag, and redflagCount = 0. Risk rejection by itself routes straight to Waitlist -- Sanction Screen is never shown in this case.",
+          postVkycOutcome:{ case:"waitlisted", score:44, ts:"2026-08-10 10:00" }, ts:"2026-08-10 10:00" },
+        { num:"14", name:"Sanction Screen", status:"skip", detail:"Never reached -- risk rejected. Sanction Screen requires Risk approval specifically; VKYC/audit/fraud/dedupe/redflag all passing is not enough on its own." },
+        { num:"15", name:"GST / CPV", status:"skip", detail:"Not applicable -- risk rejected, routed to Waitlist instead" },
+        { num:"16", name:"Loan Disbursement", status:"stuck", detail:"Waitlisted -- loan not disbursed. User sees a Waitlist screen with a risk score (0-100 scale) and actionable items.",
+          disbursement:{ status:"waitlisted", score:44, actionItems:["Improve credit score above 650","Maintain minimum balance in primary bank account","Complete 6 months of consistent business transactions","Link additional bank accounts via Account Aggregator"] },
+          ts:"2026-08-11 11:00" },
+      ],
+      webhooks: [
+        { event: "PAN verified", status: "ok", time: "2026-08-08 09:00" },
+        { event: "Dedupe (PAN)", status: "ok", time: "clear at 2026-08-08 09:00" },
+        { event: "Credit score fetched", status: "ok", time: "2026-08-08 09:15" },
+        { event: "AA consent approved", status: "ok", time: "2026-08-08 10:00" },
+        { event: "VKYC decision: APPROVED", status: "ok", time: "2026-08-09 09:00" },
+        { event: "Dedupe (VKYC)", status: "ok", time: "clear at 2026-08-09 09:00" },
+        { event: "Risk decision: REJECTED", status: "ok", time: "2026-08-10 10:00" },
+        { event: "Sanction issued", status: "err", time: "not issued -- risk rejected, routed to waitlist instead" },
+        { event: "Loan disbursed", status: "err", time: "not disbursed -- waitlisted" },
+      ],
     }],
   },
 

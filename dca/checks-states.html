@@ -20,7 +20,6 @@
       <details class="devnav">
         <summary class="sp-qa-btn">Dev references ▾</summary>
         <div class="devnav-menu">
-          <a href="journey-states.html">Journey states</a>
           <a href="alerts-states.html">Alerts card states</a>
           <a href="checks-states.html" class="active">Checks states</a>
           <a href="event-delivery-states.html">Event delivery states</a>
@@ -48,11 +47,14 @@ const T = "2026-07-28 09:20";
 
 function build() {
   const rep = _ccell(_t("full card", "<b>Representative Checks card</b> — all rows populated with latest values."),
+    renderSIMCheck({ status:"success", reason:"OK", ts:T }) +
     renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T }) +
+    renderAMLCheck({ status:"verified", match:false, ts:T }) +
     renderGstCheck({ status:"verified", source:"bureau_id_gstin_advanced_details (product_flow=2)", ts:T }) +
     renderUdyamCheck({ status:"verified", ts:T }) +
     renderVkycCheck({ status:"APPROVED", ts:"2026-07-30 15:05" }) +
-    renderAuditCheck(null));
+    renderAuditCheck(null) +
+    renderManualReviewCheck(null));
 
   const fraud = [
     _ccell(_t("Fraud/redflag", "<b>Clear</b> — no redflag rows."), renderFraudCheck({ status:"clear", reason:"No redflag rows", ts:T })),
@@ -89,18 +91,39 @@ function build() {
     _ccell(_t("Audit review", "<b>Declined</b> — CONCURRENT_AUDIT_REVIEW_DECLINED."), renderAuditCheck({ status:"declined", reason:"CONCURRENT_AUDIT_REVIEW_DECLINED", ts:"2026-07-29 17:15" })),
   ];
 
+  const sim = [
+    _ccell(_t("SIM binding", "<b>Success</b> — bound normally at login."), renderSIMCheck({ status:"success", reason:"OK", ts:T })),
+    _ccell(_t("SIM binding", "<b>Failed — non-blocking</b>. DCA never blocks on this; stored for visibility only."), renderSIMCheck({ status:"failed", reason:"ETIMEDOUT", ts:T })),
+    _ccell(_t("SIM binding", "<b>N/A</b> — no SIM binding data."), renderSIMCheck(null)),
+  ];
+
+  const aml = [
+    _ccell(_t("AML", "<b>Verified</b> — no match, screening complete."), renderAMLCheck({ status:"verified", match:false, ts:T })),
+    _ccell(_t("AML", "<b>Pending</b> — screening in progress."), renderAMLCheck({ status:"pending", match:false, ts:T })),
+    _ccell(_t("AML", "<b>Possible match</b> — escalated to Compliance."), renderAMLCheck({ status:"pending", match:true, reason:"Name partial match against watchlist", ts:T })),
+    _ccell(_t("AML", "<b>N/A</b> — no AML data."), renderAMLCheck(null)),
+  ];
+
+  const manualReview = [
+    _ccell(_t("Manual review", "<b>Not triggered</b> — default."), renderManualReviewCheck(null)),
+    _ccell(_t("Manual review", "<b>Under review</b> — FIA."), renderManualReviewCheck({ type:"fia", status:"under_review", ts:T })),
+    _ccell(_t("Manual review", "<b>Cleared</b> — KYC Ops."), renderManualReviewCheck({ type:"kyc_ops", status:"cleared", ts:T })),
+    _ccell(_t("Manual review", "<b>Rejected</b> — KYC Ops."), renderManualReviewCheck({ type:"kyc_ops", status:"rejected", reason:"Business address could not be verified", ts:T })),
+  ];
+
   const sec = (title, sub, cells) =>
     `<div class="spec-section-title">${title}<span class="ms-sub">${sub}</span></div><div class="spec-grid">${cells.join("")}</div>`;
 
   document.getElementById("body").innerHTML =
     sec("Representative", "all rows together, as on the live dashboard", [rep]) +
     sec("Fraud / redflag", "Clear · Hard block · Dedupe conflict · Audit declined · Flagged (other) · N/A", fraud) +
+    sec("SIM binding", "Success · Failed (non-blocking) · N/A", sim) +
+    sec("AML", "Verified · Pending · Possible match · N/A", aml) +
     sec("GST verification", "Verified · Not verified (non-gating) · N/A", gst) +
     sec("Udyam verification", "Verified · Not verified (mandatory block) · N/A", udyam) +
     sec("VKYC", "Approved · Rejected · Pending · Not reached", vkyc) +
     sec("Audit review", "Not triggered · Under review · Approved · Declined", audit) +
-    `<div class="spec-section-title">Rows deliberately NOT included<span class="ms-sub">no confirmed DCA source — PRD §7.3, Q-DCA-6</span></div>` +
-    `<div class="spec-cell" style="max-width:640px;"><div class="spec-caption">AML · Bureau stop · Risk decisioning · SIM binding all exist on the DSA+CC/CC-only tool's Checks card. No DCA-specific (or shared per-user) source was confirmed for any of these, so they are omitted here rather than built against an assumed source. See PRD Open Questions Q-DCA-6.</div></div>`;
+    sec("Manual review", "Not triggered · Under review · Cleared · Rejected", manualReview);
 }
 build();
 </script>
