@@ -7,12 +7,14 @@
 // data supplies a real `ts` sourced from a genuinely timestamped table (VKYC,
 // audit-adjacent updated_at, the account-creation property). Do not add one back in.
 
-// ── The fixed 13-milestone DCA skeleton ──────────────────────────────────────
+// ── The fixed 11-milestone DCA skeleton ──────────────────────────────────────
+// Fraud Check (pre-VKYC) is now an attribute of Verify Details (step.fraudCheck /
+// step.fraudBlock), and Post-VKYC Checks is now an attribute of VKYC
+// (step.postVkycPipeline) -- neither is a separate milestone any more.
 const DCA_MILESTONES = [
   "Terms & Condition", "PAN Screen", "Business Details", "Business Address",
   "CKYC / Aadhaar", "Udyam Aadhaar", "GST Screen", "Verify Details",
-  "Fraud Check (pre-VKYC)", "VKYC", "Post-VKYC Checks", "Decision",
-  "Current Account Creation"
+  "VKYC", "Decision", "Current Account Creation"
 ];
 
 function mkDcaSteps(currentStep, overrides) {
@@ -585,8 +587,9 @@ function renderAMLCheck(data) {
 // For DCA, risk is derived from the Decision step or post-VKYC pipeline.
 function deriveRiskDecision(app) {
   if (app.riskDecision) return app.riskDecision;
-  // Check post-VKYC pipeline for risk node
-  const postVkyc = (app.steps || []).find(s => (s.name || "").toLowerCase().includes("post-vkyc"));
+  // Check post-VKYC pipeline for risk node -- postVkycPipeline is now an attribute of the
+  // VKYC step itself, not a separate milestone, so look it up by field presence.
+  const postVkyc = (app.steps || []).find(s => s.postVkycPipeline);
   if (postVkyc && postVkyc.postVkycPipeline) {
     const checks = postVkyc.postVkycPipeline.checks || [];
     const fraud = checks.find(c => (c.name || "").toLowerCase() === "fraud");

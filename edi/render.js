@@ -9,7 +9,10 @@
 // HONESTY RULE: same as DCA -- no fake timestamps. A step renders "--" unless the
 // test-user data supplies a real `ts`.
 
-// -- helper: EDI milestone names (16 steps) --
+// -- helper: EDI milestone names (15 steps) --
+// Post-VKYC Outcome is now an attribute of VKYC (step.postVkycOutcome) rather than its
+// own milestone. Fraud is already an attribute of Verify Details (step.fraudBlock) --
+// EDI never had a separate pre-VKYC Fraud Check milestone, so nothing to fold there.
 const EDI_MILESTONES = [
   "Terms & Condition",
   "Permissions",
@@ -23,7 +26,6 @@ const EDI_MILESTONES = [
   "Udyam Registration",
   "Verify Details",
   "VKYC",
-  "Post-VKYC Outcome",
   "Sanction Screen",
   "GST / CPV",
   "Loan Disbursement"
