@@ -119,8 +119,8 @@ function renderNonIndividualBlock(step) {
   if (!step.nonIndividualBlock) return "";
   return `<div class="block-banner bb-hard">
     <div>
-      <span class="bb-label">Non-individual PAN blocked</span>
-      PAN type: <strong>${step.nonIndividualBlock.panType}</strong> -- only individual PAN is accepted for EDI.
+      <span class="bb-label">Non-individual PAN -- inline validation error</span>
+      PAN type detected: <strong>${step.nonIndividualBlock.panType}</strong>. "We currently accept only sole proprietorship or individual PANs. Please enter a valid individual/sole-prop PAN to continue." There is no separate business-PAN entry flow -- this is the only PAN type EDI accepts.
       ${step.nonIndividualBlock.ts ? `<br><span style="font-size:11px;opacity:.8;">${step.nonIndividualBlock.ts}</span>` : ""}
     </div>
   </div>`;

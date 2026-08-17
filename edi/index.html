@@ -211,7 +211,7 @@ const USERS = {
     phone: "91234 56789", email: "gupta.sons@gmail.com",
     applications: [{
       id: "app_edi_002", type: "edi_onboarding", label: "EDI",
-      status: "blocked", overallLabel: "Non-individual PAN -- blocked at step 4",
+      status: "blocked", overallLabel: "Non-individual PAN -- inline error at PAN screen (step 4)",
       state: "REJECTED", currentStep: 4, updatedAt: "2026-08-02 10:15",
       sourceChannel: "MERCHANT",
       fraud: null, risk: null, creditScoreCheck: null, aa: null,
@@ -222,7 +222,7 @@ const USERS = {
         { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured", ts:"2026-08-02 10:00" },
         { num:"02", name:"Permissions", status:"done", detail:"All permissions granted", ts:"2026-08-02 10:02" },
         { num:"03", name:"Loan Requirement", status:"done", detail:"Loan range: 5L-35L, Purpose: Working capital", loanRange:"5L - 35L", loanPurpose:"Working capital", ts:"2026-08-02 10:05" },
-        { num:"04", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered -- non-individual PAN blocked. Only individual PAN accepted for EDI.",
+        { num:"04", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered (4th character of PAN = 'F', non-individual). Inline validation error shown immediately -- there is no separate business-PAN flow, EDI accepts only individual/sole-prop PANs.",
           nonIndividualBlock:{ panType:"Partnership (Firm)", ts:"2026-08-02 10:15" } },
         { num:"05", name:"Credit Score", status:"pending", detail:"Not reached -- blocked upstream" },
         { num:"06", name:"Account Aggregator (Ignoosis)", status:"pending", detail:"Not reached" },
