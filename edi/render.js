@@ -142,7 +142,7 @@ function renderWaitlistCard(step) {
   const items = (step.waitlist.actionItems || []).map(i => `<li>${i}</li>`).join("");
   return `<div class="waitlist-card">
     <div class="waitlist-card-label">Waitlisted</div>
-    <div class="waitlist-card-score">Score: ${step.waitlist.score}</div>
+    <div class="waitlist-card-score">Risk score: ${step.waitlist.score}/100</div>
     ${items ? `<div class="waitlist-card-items"><strong>Actionable items:</strong><ul>${items}</ul></div>` : ""}
   </div>`;
 }
@@ -171,7 +171,7 @@ function renderPostVkycOutcome(step) {
     return `<div class="outcome-card oc-waitlisted">
       <div class="outcome-card-label">Post-VKYC Outcome -- Case 3</div>
       <div class="outcome-card-action">⚠ Risk Rejected + VKYC Verified -- Waitlisted</div>
-      ${o.score ? `<div class="agent-row"><strong>Score:</strong> ${o.score}</div>` : ""}
+      ${o.score ? `<div class="agent-row"><strong>Risk score:</strong> ${o.score}/100</div>` : ""}
       ${o.ts ? `<div class="agent-row"><strong>Time:</strong> ${o.ts}</div>` : ""}
     </div>`;
   }
@@ -225,7 +225,7 @@ function renderDisbursementCard(step) {
     const items = (d.actionItems || []).map(i => `<li>${i}</li>`).join("");
     return `<div class="waitlist-card">
       <div class="waitlist-card-label">Waitlisted -- Loan Not Disbursed</div>
-      <div class="waitlist-card-score">Score: ${d.score}</div>
+      <div class="waitlist-card-score">Risk score: ${d.score}/100</div>
       ${items ? `<div class="waitlist-card-items"><strong>Actionable items:</strong><ul>${items}</ul></div>` : ""}
     </div>`;
   }

@@ -74,7 +74,15 @@
       <div class="tc-group">
         <div class="tc-section-header">Business Details / Address</div>
         <div class="tc-row" onclick="loadTest('dca_udyam_block')" data-uuid="dca_udyam_block"><span class="tc-num">21</span>Udyam not verified — mandatory block</div>
-        <div class="tc-row" onclick="loadTest('dca_gst_invalid')" data-uuid="dca_gst_invalid"><span class="tc-num">22</span>GST not verified — informational</div>
+      </div>
+      <div class="tc-group">
+        <div class="tc-section-header">GST screen — blocker catalog</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_invalid')" data-uuid="dca_gst_invalid"><span class="tc-num">22</span>GST cancelled (API-checked)</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_format_invalid')" data-uuid="dca_gst_format_invalid"><span class="tc-num">22a</span>GST format invalid (no API call)</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_pan_mismatch')" data-uuid="dca_gst_pan_mismatch"><span class="tc-num">22b</span>GST linked to a different PAN (no API call)</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_does_not_exist')" data-uuid="dca_gst_does_not_exist"><span class="tc-num">22c</span>GST does not exist (API-checked)</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_inactive')" data-uuid="dca_gst_inactive"><span class="tc-num">22d</span>GST inactive/suspended (API-checked)</div>
+        <div class="tc-row" onclick="loadTest('dca_gst_api_downtime')" data-uuid="dca_gst_api_downtime"><span class="tc-num">22e</span>GST API downtime — non-blocker, proceeds</div>
       </div>
       <div class="tc-group">
         <div class="tc-section-header">Fraud blocks</div>
@@ -219,7 +227,7 @@ const USERS = {
           fraudCheck:{ status:"clear", ts:"2026-07-28 09:32" }, ts:"2026-07-28 09:32" },
         { num:"10", name:"VKYC", status:"done", detail:"VKYC call initiated. Selfie captured, PAN captured, questions answered. VKYC approved.",
           vkycOutcome:{ status:"APPROVED", ts:"2026-07-30 15:05" }, ts:"2026-07-30 15:05" },
-        { num:"11", name:"Post-VKYC Checks", status:"done", detail:"All post-VKYC checks passed sequentially.",
+        { num:"11", name:"Post-VKYC Checks", status:"done", detail:"All post-VKYC checks passed sequentially: dedupe → fraud call → FIA → audit. While these run, the user briefly sees a yellow-icon \"Creating your current account\" waiting screen (\"This generally doesn't happen, we're looking into this. It might take up to a day...\") rather than an error state.",
           postVkycPipeline:{ checks:[
             {name:"Dedupe", status:"pass"},
             {name:"Redflag", status:"pass"},
@@ -253,8 +261,8 @@ const USERS = {
       redflagCount: 0,
       steps: [
         { num:"01", name:"Terms & Condition", status:"done", detail:"User selected Current Account card. KYC consent and banking exposure acknowledged.", ts:"2026-07-15 09:55" },
-        { num:"02", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered (non-individual). Only individual PANs are accepted. Cannot proceed.",
-          panBlock:{ blocked:true, reason:"Non-individual PAN (Partnership firm) — only individual PANs are accepted for DCA onboarding." } },
+        { num:"02", name:"PAN Screen", status:"stuck", detail:"Partnership PAN entered (4th character of PAN = 'F', non-individual). Inline validation error shown immediately — no separate business-PAN flow exists.",
+          panBlock:{ blocked:true, reason:"We currently accept only sole proprietorship or individual PANs. Please enter a valid individual/sole-prop PAN to continue." } },
         { num:"03", name:"Business Details", status:"pending", detail:"Not reached — blocked upstream" },
         { num:"04", name:"Business Address", status:"pending", detail:"Not reached" },
         { num:"05", name:"CKYC / Aadhaar", status:"pending", detail:"Not reached" },
@@ -428,11 +436,11 @@ const USERS = {
     phone: "93000 77889", email: "anand.hardware@gmail.com",
     applications: [{
       id: "app_dca_007", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "GST invalid / cancelled — stuck at GST Screen",
+      status: "stuck", overallLabel: "GST cancelled — stuck at GST Screen (inline blocker, no API call needed to detect status)",
       state: "PENDING", currentStep: 7, updatedAt: "2026-07-26 15:20",
       businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
       fraud: { status: "clear", reason: "No redflag rows", ts: "2026-07-26 09:00" },
-      gst: { status: "invalid", reason: "GST number is cancelled / not linked to PAN", ts: "2026-07-26 15:20" },
+      gst: { status: "invalid", reason: "Entered GST is cancelled. Please enter an active GSTIN.", ts: "2026-07-26 15:20" },
       udyam: { status: "verified", ts: "2026-07-26 09:35" },
       vkyc: null, audit: null,
       accountCreated: { status: "not_reached" },
@@ -440,14 +448,14 @@ const USERS = {
       steps: [
         { num:"01", name:"Terms & Condition", status:"done", detail:"Consent captured.", ts:"2026-07-26 08:50" },
         { num:"02", name:"PAN Screen", status:"done", detail:"Individual PAN entered.", ts:"2026-07-26 08:55" },
-        { num:"03", name:"Business Details", status:"done", detail:"Business details captured.", ts:"2026-07-26 09:00" },
-        { num:"04", name:"Business Address", status:"done", detail:"Business address captured.", ts:"2026-07-26 09:05" },
-        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar path taken (no CKYC data). Verified.",
+        { num:"03", name:"Business Details", status:"done", detail:"Registered business name, business category, annual sales (incl. cash), annual income (post-expenses) captured. No GST or Udyam asked or verified on this page — no blocker.", ts:"2026-07-26 09:00" },
+        { num:"04", name:"Business Address", status:"done", detail:"Business address captured (line 1 / line 2 format). No blocker.", ts:"2026-07-26 09:05" },
+        { num:"05", name:"CKYC / Aadhaar", status:"done", detail:"Aadhaar path taken — no CKYC number was linked to this PAN at the PAN step. Verified.",
           ckycAadhaar:{ path:"aadhaar" }, ts:"2026-07-26 09:20" },
-        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam Registration Number entered and verified.", ts:"2026-07-26 09:35" },
-        { num:"07", name:"GST Screen", status:"stuck", detail:"GST number entered but validation failed. Must be: linked to PAN, valid, active, not cancelled. The entered GST is cancelled.",
-          fields:[{v:"GST validation: FAILED",bad:true},{v:"Reason: GST_CANCELLED / NOT_LINKED_TO_PAN",bad:true}], ts:"2026-07-26 15:20" },
-        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached — blocked upstream" },
+        { num:"06", name:"Udyam Aadhaar", status:"done", detail:"Udyam Registration Number entered — validated as a sole-proprietorship/individual organisation type. Verified.", ts:"2026-07-26 09:35" },
+        { num:"07", name:"GST Screen", status:"stuck", detail:"GST format is valid and PAN matches, but the GSTIN status returned by the GST API is CANCELLED_SUO_MOTO. This is a hard inline blocker — user cannot proceed until an active GSTIN is entered. (Full GST blocker rules: format-invalid and PAN-mismatch are checked client-side without an API call; does-not-exist / cancelled / inactive-suspended require the live GST API. API downtime always lets the user proceed. The GST screen itself is skippable whether or not a GST was auto-fetched — this per-status check only fires when the user has actively entered/edited a GSTIN.)",
+          fields:[{v:"GST format: VALID",ok:true},{v:"PAN match: OK",ok:true},{v:"GST status: CANCELLED_SUO_MOTO",bad:true},{v:"\"Entered GST is cancelled. Please enter an active GSTIN.\"",bad:true}], ts:"2026-07-26 15:20" },
+        { num:"08", name:"Verify Details", status:"pending", detail:"Not reached — blocked upstream. No pre-fill will be shown here for GST while it remains invalid." },
         { num:"09", name:"Fraud Check (pre-VKYC)", status:"pending", detail:"Not reached" },
         { num:"10", name:"VKYC", status:"pending", detail:"Not reached" },
         { num:"11", name:"Post-VKYC Checks", status:"pending", detail:"Not reached" },
@@ -455,8 +463,112 @@ const USERS = {
         { num:"13", name:"Current Account Creation", status:"pending", detail:"Not reached" },
       ],
       webhooks: [
-        { event: "flags: GST_VERIFIED", status: "err", time: "not received — GST validation failed" },
+        { event: "HyperVerge GSTIN pre-fill API", status: "ok", time: "2026-07-26 15:20 -- response persisted: request_id, status_code=200, verification_outcome=CANCELLED, failure_reason=CANCELLED_SUO_MOTO" },
+        { event: "flags: GST_VERIFIED", status: "err", time: "not received — GST cancelled" },
       ],
+    }],
+  },
+
+  // ── GST blocker catalog (format invalid / PAN mismatch / does not exist / inactive) ──
+  dca_gst_format_invalid: {
+    uuid: "8f6a7b88-9c0d-1e22-4a5b-6c7d8e9f0a11", name: "Ravi Cold Storage (Ravi Deshmukh)",
+    phone: "93000 11122", email: "ravi.coldstorage@gmail.com",
+    applications: [{
+      id: "app_dca_gst_01", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "GST format invalid — stuck at GST Screen (no API call needed)",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-10 10:00",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-10 09:00" },
+      gst: { status: "invalid", reason: "Please enter a valid GST.", ts: "2026-08-10 10:00" },
+      udyam: { status: "verified", ts: "2026-08-10 09:35" }, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" }, redflagCount: 0,
+      steps: mkDcaSteps(7, {
+        "07": { status: "stuck", detail: "GSTIN entered does not match the required 15-character format (NN AAAAA NNNN A N Z C). Checked client-side, no API call needed.",
+          fields: [{v:"GST format: INVALID",bad:true},{v:"\"Please enter a valid GST.\"",bad:true}] },
+      }),
+      webhooks: [{ event: "flags: GST_VERIFIED", status: "err", time: "not received — format invalid" }],
+    }],
+  },
+  dca_gst_pan_mismatch: {
+    uuid: "9a7b8c99-ad1e-2f33-5b6c-7d8e9f0a1b22", name: "Sneha Print & Copy Shop (Sneha Kulkarni)",
+    phone: "93000 22233", email: "sneha.print@gmail.com",
+    applications: [{
+      id: "app_dca_gst_02", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "GST linked to a different PAN — stuck at GST Screen (no API call needed)",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-10 10:20",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-10 09:00" },
+      gst: { status: "invalid", reason: "Entered GST is linked to a different PAN. Please enter a GSTIN associated with your PAN.", ts: "2026-08-10 10:20" },
+      udyam: { status: "verified", ts: "2026-08-10 09:35" }, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" }, redflagCount: 0,
+      steps: mkDcaSteps(7, {
+        "07": { status: "stuck", detail: "GSTIN format is valid (NN AAAAA NNNN A N Z C) but the embedded PAN segment does not match the user's verified PAN. Checked client-side, no API call needed.",
+          fields: [{v:"GST format: VALID",ok:true},{v:"PAN embedded in GSTIN: MISMATCH",bad:true},{v:"\"Entered GST is linked to a different PAN. Please enter a GSTIN associated with your PAN.\"",bad:true}] },
+      }),
+      webhooks: [{ event: "flags: GST_VERIFIED", status: "err", time: "not received — PAN mismatch" }],
+    }],
+  },
+  dca_gst_does_not_exist: {
+    uuid: "ab8c9daa-be2f-3a44-6c7d-8e9f0a1b2c33", name: "Manoj Fabrication Works (Manoj Rane)",
+    phone: "93000 33344", email: "manoj.fab@gmail.com",
+    applications: [{
+      id: "app_dca_gst_03", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "GST does not exist — stuck at GST Screen (API-checked)",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-10 10:40",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-10 09:00" },
+      gst: { status: "invalid", reason: "Entered GST is invalid. Please enter a valid GSTIN.", ts: "2026-08-10 10:40" },
+      udyam: { status: "verified", ts: "2026-08-10 09:35" }, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" }, redflagCount: 0,
+      steps: mkDcaSteps(7, {
+        "07": { status: "stuck", detail: "GSTIN format and PAN match are valid, but the live GST API returned \"does not exist\" — this GSTIN is not registered on the GSTN. Requires the API call (not a client-side check).",
+          fields: [{v:"GST format: VALID",ok:true},{v:"PAN match: OK",ok:true},{v:"GST API lookup: DOES_NOT_EXIST",bad:true},{v:"\"Entered GST is invalid. Please enter a valid GSTIN.\"",bad:true}] },
+      }),
+      webhooks: [
+        { event: "HyperVerge GSTIN pre-fill API", status: "ok", time: "2026-08-10 10:40 -- response persisted: status_code=200, verification_outcome=NOT_FOUND" },
+        { event: "flags: GST_VERIFIED", status: "err", time: "not received — GSTIN does not exist" },
+      ],
+    }],
+  },
+  dca_gst_inactive: {
+    uuid: "bc9daebb-cf3a-4b55-7d8e-9f0a1b2c3d44", name: "Farida Tailoring (Farida Shaikh)",
+    phone: "93000 44455", email: "farida.tailoring@gmail.com",
+    applications: [{
+      id: "app_dca_gst_04", type: "dca_onboarding", label: "DCA",
+      status: "stuck", overallLabel: "GST inactive/suspended — stuck at GST Screen (API-checked)",
+      state: "PENDING", currentStep: 7, updatedAt: "2026-08-10 11:00",
+      businessVerificationStatus: "PARTIAL", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-10 09:00" },
+      gst: { status: "invalid", reason: "Entered GST is inactive. Please enter an active GSTIN.", ts: "2026-08-10 11:00" },
+      udyam: { status: "verified", ts: "2026-08-10 09:35" }, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" }, redflagCount: 0,
+      steps: mkDcaSteps(7, {
+        "07": { status: "stuck", detail: "GSTIN format and PAN match are valid, but GST API status is SUSPENDED. Requires the API call.",
+          fields: [{v:"GST format: VALID",ok:true},{v:"PAN match: OK",ok:true},{v:"GST status: SUSPENDED",bad:true},{v:"\"Entered GST is inactive. Please enter an active GSTIN.\"",bad:true}] },
+      }),
+      webhooks: [
+        { event: "HyperVerge GSTIN pre-fill API", status: "ok", time: "2026-08-10 11:00 -- response persisted: status_code=200, verification_outcome=SUSPENDED" },
+        { event: "flags: GST_VERIFIED", status: "err", time: "not received — GST suspended" },
+      ],
+    }],
+  },
+  dca_gst_api_downtime: {
+    uuid: "cd0aebcc-da4b-5c66-8e9f-0a1b2c3d4e55", name: "Vishal Auto Electricals (Vishal Pawar)",
+    phone: "93000 55566", email: "vishal.autoelec@gmail.com",
+    applications: [{
+      id: "app_dca_gst_05", type: "dca_onboarding", label: "DCA",
+      status: "active", overallLabel: "GST API downtime — user allowed to proceed (per policy)",
+      state: "PENDING", currentStep: 8, updatedAt: "2026-08-10 11:20",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: { status: "clear", reason: "No redflag rows", ts: "2026-08-10 09:00" },
+      gst: { status: "not_verified", reason: "GST API was down at time of check — user allowed to proceed per policy, not treated as invalid.", ts: "2026-08-10 11:20" },
+      udyam: { status: "verified", ts: "2026-08-10 09:35" }, vkyc: null, audit: null,
+      accountCreated: { status: "not_reached" }, redflagCount: 0,
+      steps: mkDcaSteps(8, {
+        "07": { status: "done", detail: "GST API returned EXTERNAL_DOWNTIME while checking the entered GSTIN. Per policy, API downtime always lets the user proceed — this is a non-blocker, stored for downstream visibility only.",
+          fields: [{v:"GST API: EXTERNAL_DOWNTIME — non-blocking",warn:true}] },
+      }),
+      webhooks: [{ event: "HyperVerge GSTIN pre-fill API", status: "err", time: "2026-08-10 11:20 -- EXTERNAL_DOWNTIME, response persisted anyway" }],
     }],
   },
 
@@ -814,20 +926,20 @@ const USERS = {
 
   // ── Login failures ────────────────────────────────────────────────────────
   dca_sim_timeout: {
-    uuid: "dca-sim-timeout-0001", name: "[Test] SIM Binding — ETIMEDOUT",
+    uuid: "dca-sim-timeout-0001", name: "[Test] SIM Binding — ETIMEDOUT (non-blocking)",
     phone: "10100000004", email: "",
     simBinding: {status: "failed", reason: "ETIMEDOUT", ts: "2026-08-05 09:15"},
     applications: [{
       id: "app_dca_t04", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "Stuck at TnC — SIM binding failed",
-      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:15",
+      status: "active", overallLabel: "SIM binding failed (ETIMEDOUT) — non-blocking, user proceeded",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-08-05 09:20",
       businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
       fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
       accountCreated: {status: "not_reached"}, redflagCount: 0,
       simBinding: {status: "failed", reason: "ETIMEDOUT", ts: "2026-08-05 09:15"},
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "SIM binding failed. Method: Kaleyra. Error: ETIMEDOUT.",
-          fields: [{v: "SIM binding: FAILED", bad: true}, {v: "Error: ETIMEDOUT", bad: true}]}
+      steps: mkDcaSteps(3, {
+        "01": {status: "done", detail: "SIM binding check ran in background — failed (ETIMEDOUT, Kaleyra). SIM binding is NOT a blocker for DCA — user proceeded to TnC without interruption.",
+          fields: [{v: "SIM binding: ETIMEDOUT — non-blocking", warn: true}]}
       }),
       webhooks: [],
     }],
@@ -854,18 +966,18 @@ const USERS = {
   },
 
   dca_blacklisted_login: {
-    uuid: "dca-blacklisted-login-001", name: "[Test] USER_BLACKLISTED at login",
+    uuid: "dca-blacklisted-login-001", name: "[Test] USER_BLACKLISTED — detected at VKYC fraud check",
     phone: "10100000006", email: "",
     applications: [{
       id: "app_dca_t06", type: "dca_onboarding", label: "DCA",
-      status: "blocked", overallLabel: "Blocked — user blacklisted",
-      state: "REJECTED", currentStep: 1, updatedAt: "2026-08-05 09:25",
-      businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
-      fraud: {status: "hard_block", reason: "USER_BLACKLISTED — phone in fraud watchlist", ts: "2026-08-05 09:25"},
-      gst: null, udyam: null, vkyc: null, audit: null,
+      status: "blocked", overallLabel: "Blocked — user blacklisted (fraud check, pre-VKYC)",
+      state: "REJECTED", currentStep: 9, updatedAt: "2026-08-05 09:25",
+      businessVerificationStatus: "VERIFIED", sourceChannel: "MERCHANT",
+      fraud: {status: "hard_block", reason: "USER_BLACKLISTED — phone/PAN in fraud watchlist, detected at pre-VKYC fraud check", ts: "2026-08-05 09:25"},
+      gst: {status:"verified", ts:"2026-08-05 09:10"}, udyam: {status:"verified", ts:"2026-08-05 09:05"}, vkyc: {status:"SKIPPED", ts:"2026-08-05 09:25"}, audit: null,
       accountCreated: {status: "not_reached"}, redflagCount: 1,
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "User blacklisted at login. Fraud API returned USER_BLACKLISTED.",
+      steps: mkDcaSteps(9, {
+        "09": {status: "stuck", detail: "Fraud check (pre-VKYC) returned USER_BLACKLISTED. VKYC is skipped entirely and the application is rejected. Note: USER_BLACKLISTED is never checked at Terms & Conditions/login — it is only evaluated at the pre-VKYC and post-VKYC fraud checks.",
           fields: [{v: "USER_BLACKLISTED", bad: true}]}
       }),
       webhooks: [],
@@ -873,19 +985,19 @@ const USERS = {
   },
 
   dca_creditfreeze_login: {
-    uuid: "dca-creditfreeze-login-001", name: "[Test] CREDITFREEZE at login",
+    uuid: "dca-creditfreeze-login-001", name: "[Test] CREDITFREEZE (non-blocking)",
     phone: "10100000007", email: "",
     applications: [{
       id: "app_dca_t07", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "Stuck at TnC — credit freeze",
-      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:30",
+      status: "active", overallLabel: "Credit freeze detected — non-blocking, user proceeded",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-08-05 09:35",
       businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
-      fraud: {status: "flagged", reason: "CREDITFREEZE — bureau shows credit freeze on this PAN", ts: "2026-08-05 09:30"},
+      fraud: {status: "flagged", reason: "CREDITFREEZE — bureau shows credit freeze on this PAN (stored only, not a blocker)", ts: "2026-08-05 09:30"},
       gst: null, udyam: null, vkyc: null, audit: null,
-      accountCreated: {status: "not_reached"}, redflagCount: 1,
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "Credit freeze detected. User must lift freeze with bureau before proceeding.",
-          fields: [{v: "CREDITFREEZE", bad: true}]}
+      accountCreated: {status: "not_reached"}, redflagCount: 0,
+      steps: mkDcaSteps(3, {
+        "01": {status: "done", detail: "Credit freeze flag detected during background bureau check. CREDITFREEZE is NOT a blocker for DCA — stored for downstream visibility only, user proceeded normally.",
+          fields: [{v: "CREDITFREEZE — non-blocking", warn: true}]}
       }),
       webhooks: [],
     }],
@@ -1525,60 +1637,60 @@ const USERS = {
 
   // ── SIM binding variants ──────────────────────────────────────────────────
   dca_sim_dnd: {
-    uuid: "dca-sim-dnd-001", name: "[Test] SIM binding — SMS not delivered DND",
+    uuid: "dca-sim-dnd-001", name: "[Test] SIM binding — SMS not delivered DND (non-blocking)",
     phone: "10100000043", email: "",
     simBinding: {status: "failed", reason: "SMS_NOT_DELIVERED_DND", ts: "2026-08-05 09:40"},
     applications: [{
       id: "app_dca_t43", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "Stuck at TnC — SIM DND block",
-      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 09:40",
+      status: "active", overallLabel: "SIM binding failed (DND) — non-blocking, user proceeded",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-08-05 09:45",
       businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
       fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
       accountCreated: {status: "not_reached"}, redflagCount: 0,
       simBinding: {status: "failed", reason: "SMS_NOT_DELIVERED_DND", ts: "2026-08-05 09:40"},
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "SIM binding failed. DND active on this number.",
-          fields: [{v: "SIM: DND BLOCKED", bad: true}]}
+      steps: mkDcaSteps(3, {
+        "01": {status: "done", detail: "SIM binding check ran in background — DND active on this number, SMS not delivered. Not a blocker for DCA — user proceeded normally.",
+          fields: [{v: "SIM: DND — non-blocking", warn: true}]}
       }),
       webhooks: [],
     }],
   },
 
   dca_sim_device_change: {
-    uuid: "dca-sim-device-change-001", name: "[Test] SIM binding — DEVICEID_MISS_MATCH",
+    uuid: "dca-sim-device-change-001", name: "[Test] SIM binding — DEVICEID_MISS_MATCH (non-blocking)",
     phone: "10100000047", email: "",
     simBinding: {status: "failed", reason: "DEVICEID_MISS_MATCH", ts: "2026-08-05 10:00"},
     applications: [{
       id: "app_dca_t47", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "Stuck at TnC — device ID mismatch",
-      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 10:00",
+      status: "active", overallLabel: "SIM binding failed (device switch) — non-blocking, user proceeded",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-08-05 10:05",
       businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
       fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
       accountCreated: {status: "not_reached"}, redflagCount: 0,
       simBinding: {status: "failed", reason: "DEVICEID_MISS_MATCH", ts: "2026-08-05 10:00"},
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "SIM binding failed. Device ID does not match. User may have switched devices.",
-          fields: [{v: "DEVICEID_MISS_MATCH", bad: true}]}
+      steps: mkDcaSteps(3, {
+        "01": {status: "done", detail: "SIM binding check ran in background — device ID does not match (user switched devices). Not a blocker for DCA — user proceeded normally.",
+          fields: [{v: "DEVICEID_MISS_MATCH — non-blocking", warn: true}]}
       }),
       webhooks: [],
     }],
   },
 
   dca_sim_fe_expired: {
-    uuid: "dca-sim-fe-expired-001", name: "[Test] SIM binding — FE_TIME_EXPIRED",
+    uuid: "dca-sim-fe-expired-001", name: "[Test] SIM binding — FE_TIME_EXPIRED (non-blocking)",
     phone: "10100000048", email: "",
     simBinding: {status: "failed", reason: "FE_TIME_EXPIRED", ts: "2026-08-05 10:10"},
     applications: [{
       id: "app_dca_t48", type: "dca_onboarding", label: "DCA",
-      status: "stuck", overallLabel: "Stuck at TnC — FE time expired",
-      state: "PENDING", currentStep: 1, updatedAt: "2026-08-05 10:10",
+      status: "active", overallLabel: "SIM binding failed (FE timeout) — non-blocking, user proceeded",
+      state: "PENDING", currentStep: 3, updatedAt: "2026-08-05 10:15",
       businessVerificationStatus: "NOT_STARTED", sourceChannel: "MERCHANT",
       fraud: null, gst: null, udyam: null, vkyc: null, audit: null,
       accountCreated: {status: "not_reached"}, redflagCount: 0,
       simBinding: {status: "failed", reason: "FE_TIME_EXPIRED", ts: "2026-08-05 10:10"},
-      steps: mkDcaSteps(1, {
-        "01": {status: "stuck", detail: "SIM binding failed. Frontend timer expired before SMS was received.",
-          fields: [{v: "FE_TIME_EXPIRED", bad: true}]}
+      steps: mkDcaSteps(3, {
+        "01": {status: "done", detail: "SIM binding check ran in background — frontend timer expired before SMS was received. Not a blocker for DCA — user proceeded normally.",
+          fields: [{v: "FE_TIME_EXPIRED — non-blocking", warn: true}]}
       }),
       webhooks: [],
     }],
