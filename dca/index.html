@@ -2353,10 +2353,13 @@ function deriveAlerts(u, app) {
   const ckycStep = (app.steps || []).find(s => s.ckycAadhaar && s.ckycAadhaar.path === "fallback");
   if (ckycStep) add("info", "CKYC fallback to Aadhaar", "CKYC data was found but OTP verification failed. User switched to Aadhaar path.");
 
-  // SIM binding failure
+  // SIM binding failure — NOT a blocker for DCA (non-blocking by design), stored for visibility only
   const simB = app.simBinding || u.simBinding;
   if (simB && simB.status === "failed")
-    add("p0", "SIM binding failed - " + (simB.reason || "unknown"), "SIM binding check failed. See Checks -> SIM binding.");
+    add("info", "SIM binding failed (non-blocking) - " + (simB.reason || "unknown"), "SIM binding check failed but DCA never blocks on this — stored for visibility only, user proceeded normally. See Checks -> SIM binding.");
+  // Credit freeze — also not a blocker for DCA
+  if (f && f.status === "flagged" && (f.reason || "").includes("CREDITFREEZE"))
+    add("info", "Credit freeze detected (non-blocking)", f.reason || "Bureau shows a credit freeze on this PAN — not a blocker, stored for visibility only.");
 
   // AML match
   if (app.amlStatus && app.amlStatus.match)

@@ -1398,8 +1398,32 @@ function deriveAlerts(u, app) {
   if (mr && mr.status === "under_review") add("p1", "In manual review", (mr.type === "fia" ? "FIA" : "KYC Ops") + " review pending since " + (mr.ts || "unknown") + ".");
   if (aml && aml.status === "pending") add("p1", "AML screening pending", "AML check has not completed yet.");
 
+  // -- P0/P1: VKYC vendor/session issues (parity with DCA) --
+  if (v && v.status === "LINK_FAILED") add("p0", "VKYC link generation failed", "VKYC link could not be generated. Check VKYC service status.");
+  if (v && v.status === "NO_AGENTS") add("p1", "VKYC -- no agents available", "No VKYC agents available in the user's region.");
+  if (v && v.status === "TIMEOUT") add("p1", "VKYC -- timeout", "VKYC session timed out.");
+  if (v && v.status === "SKIPPED") add("p1", "VKYC skipped", "VKYC was skipped due to a pre-VKYC fraud hard block.");
+
+  // -- GST invalid/cancelled (parity with DCA -- distinct from the SANCTIONED/not_verified rule above) --
+  if (g && g.status === "invalid") add("p1", "GST invalid / cancelled", g.reason || "Entered GST is invalid, cancelled, or linked to a different PAN.");
+
   // -- Info --
   if (app.state === "WAITLISTED") add("info", "Waitlisted with actionable items", "User sees waitlist screen with score and improvement steps.");
+
+  // Non-individual PAN is informational at dashboard level (user is just blocked inline, no separate business-PAN flow exists)
+  const panStep = (app.steps || []).find(s => s.nonIndividualBlock);
+  if (panStep) add("info", "Non-individual PAN entered", "PAN type: " + panStep.nonIndividualBlock.panType + " -- only individual/sole-prop PAN is accepted for EDI, same policy as DCA.");
+
+  // CKYC fallback path info (parity with DCA)
+  const ckycFallbackStep = (app.steps || []).find(s => s.ckycValidity === "invalid");
+  if (ckycFallbackStep) add("info", "CKYC fallback to Aadhaar", "CKYC data was found but the record was invalid/expired. User fell back to the Aadhaar path.");
+
+  // Abandoned (parity with DCA)
+  if (app.status === "abandoned") add("info", "Application abandoned", "Idle for " + (app.idleDays || "many") + " days. No user activity detected.");
+
+  // Journey reset (parity with DCA)
+  const resetSteps = (app.steps || []).filter(s => s.status === "reset");
+  if (resetSteps.length > 0) add("info", "Journey reset detected", resetSteps.length + " step(s) have been reset. Check timeline for details.");
 
   const rank = { p0: 0, p1: 1, info: 2 };
   return A.sort((a, b) => rank[a.level] - rank[b.level]);
