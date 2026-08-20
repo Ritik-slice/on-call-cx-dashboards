@@ -7,11 +7,13 @@
 // data supplies a real `ts` sourced from a genuinely timestamped table (VKYC,
 // audit-adjacent updated_at, the account-creation property). Do not add one back in.
 
-// ── The fixed 11-milestone DCA skeleton ──────────────────────────────────────
+// ── The fixed 15-milestone DCA skeleton ──────────────────────────────────────
 // Fraud Check (pre-VKYC) is now an attribute of Verify Details (step.fraudCheck /
 // step.fraudBlock), and Post-VKYC Checks is now an attribute of VKYC
 // (step.postVkycPipeline) -- neither is a separate milestone any more.
+// Phone Number / Email / Name + MPIN Setup / Boost Screen precede Terms & Condition.
 const DCA_MILESTONES = [
+  "Phone Number", "Email", "Name + MPIN Setup", "Boost Screen",
   "Terms & Condition", "PAN Screen", "Business Details", "Business Address",
   "CKYC / Aadhaar", "Udyam Aadhaar", "GST Screen", "Verify Details",
   "VKYC", "Decision", "Current Account Creation"
@@ -53,6 +55,10 @@ function renderField(f) {
 
 function stepIcon(name) {
   const n = (name || "").toLowerCase();
+  if (n.includes("phone")) return "📱";
+  if (n.includes("email")) return "✉️";
+  if (n.includes("mpin") || n.includes("name +")) return "🔑";
+  if (n.includes("boost")) return "🚀";
   if (n.includes("terms") || n.includes("condition")) return "📝";
   if (n.includes("pan")) return "🪪";
   if (n.includes("business details")) return "🏢";

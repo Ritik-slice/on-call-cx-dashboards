@@ -9,11 +9,16 @@
 // HONESTY RULE: same as DCA -- no fake timestamps. A step renders "--" unless the
 // test-user data supplies a real `ts`.
 
-// -- helper: EDI milestone names (15 steps) --
+// -- helper: EDI milestone names (19 steps) --
 // Post-VKYC Outcome is now an attribute of VKYC (step.postVkycOutcome) rather than its
 // own milestone. Fraud is already an attribute of Verify Details (step.fraudBlock) --
 // EDI never had a separate pre-VKYC Fraud Check milestone, so nothing to fold there.
+// Phone Number / Email / Name + MPIN Setup / Boost Screen precede Terms & Condition.
 const EDI_MILESTONES = [
+  "Phone Number",
+  "Email",
+  "Name + MPIN Setup",
+  "Boost Screen",
   "Terms & Condition",
   "Permissions",
   "Loan Requirement",
@@ -52,6 +57,10 @@ function renderField(f) {
 
 function stepIcon(name) {
   const n = (name || "").toLowerCase();
+  if (n.includes("phone")) return "\u{1F4F1}";                                                        // Phone Number
+  if (n.includes("email")) return "✉️";                                                      // Email
+  if (n.includes("mpin") || n.includes("name +")) return "\u{1F522}";                                 // Name + MPIN Setup
+  if (n.includes("boost")) return "\u{1F680}";                                                         // Boost Screen
   if (n.includes("terms") || n.includes("condition") || n.includes("tnc")) return "\u{1F4DD}";        // Terms & Condition
   if (n.includes("permission")) return "\u{1F511}";                                                     // Permissions
   if (n.includes("loan requirement")) return "\u{1F4B0}";                                              // Loan Requirement
